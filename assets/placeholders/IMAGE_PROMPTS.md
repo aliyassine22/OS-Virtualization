@@ -6,8 +6,8 @@ The decks use **four** generated images. Everything else is a code-drawn diagram
 |---|---|---|---|
 | `hero` | 1 Title (dark) | 1450 × 2050 px (≈ 5:7) | delivered |
 | `datacenter` | 3 What is virtualization? | 1700 × 1845 px (≈ 12:13) | delivered |
-| `consolidation` | 4 Why it matters (white slide) | **1480 × 1360 px** (≈ 12:11) | to generate |
-| `future` | 24 Conclusion (dark) | **1450 × 2050 px** (≈ 5:7) | to generate |
+| `consolidation` | 4 Why it matters (white slide) | 1480 × 1360 px (≈ 12:11) | delivered |
+| `future` | 24 Conclusion (dark) | 1450 × 2050 px (≈ 5:7) | delivered |
 
 ## `consolidation`: plain-English description
 - **Left half:** five or six identical dark-grey servers stacked loosely, each nearly empty. Each one shows only a tiny sliver of activity: a short, dim teal bar on its front, to suggest it's mostly idle.
