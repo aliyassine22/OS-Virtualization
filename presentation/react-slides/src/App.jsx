@@ -1,13 +1,13 @@
 import React, { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { SLIDES } from "./deck/slides.jsx";
-import { team, MEMBER_COLORS } from "./deck/team.js";
+import { team } from "./deck/team.js";
 import { StepContext } from "./components/blocks.jsx";
 
 /**
  * Deck engine.
  *   Right / Space / PageDown : next step, then next slide     Left / PageUp : back
- *   Home / End : first / last     N : speaker notes     O : overview     F : fullscreen
+ *   Home / End : first / last     O : overview     F : fullscreen
  * The URL hash (#/7) keeps your place on reload.
  */
 const readHash = () => {
@@ -30,7 +30,6 @@ export default function App() {
   const [index, setIndex] = useState(readHash);
   const [step, setStep] = useState(0);
   const [dir, setDir] = useState(1);
-  const [notes, setNotes] = useState(false);
   const [overview, setOverview] = useState(false);
   const scale = useStageScale();
   const reduce = useReducedMotion();
@@ -56,7 +55,6 @@ export default function App() {
       else if (["ArrowLeft", "PageUp"].includes(k)) { e.preventDefault(); prev(); }
       else if (k === "Home") go(0);
       else if (k === "End") go(SLIDES.length - 1);
-      else if (k === "n" || k === "N") setNotes((v) => !v);
       else if (k === "o" || k === "O" || k === "Escape") setOverview((v) => (k === "Escape" ? false : !v));
       else if (k === "f" || k === "F") {
         if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
@@ -74,7 +72,6 @@ export default function App() {
   }, []);
 
   const Body = slide.render;
-  const member = slide.member;
   const variants = reduce
     ? { enter: { opacity: 0 }, center: { opacity: 1 }, exit: { opacity: 0 } }
     : {
@@ -95,11 +92,6 @@ export default function App() {
               transition={{ duration: 0.35, ease: [0.2, 0.7, 0.2, 1] }}
               aria-roledescription="slide" aria-label={`${index + 1} of ${SLIDES.length}: ${slide.title}`}
             >
-              {member && !slide.hideBadge && (
-                <div className="badge" style={{ background: MEMBER_COLORS[member - 1] }} title={team.members[member - 1].name}>
-                  M{member}<small>{team.members[member - 1].name}</small>
-                </div>
-              )}
               {!slide.hideTitle && <h1>{slide.title}</h1>}
               <StepContext.Provider value={step}>
                 <Body step={step} />
@@ -110,7 +102,7 @@ export default function App() {
               </div>
               <div className="progress" aria-hidden>
                 {SLIDES.map((s, i) => (
-                  <span key={i} style={{ flex: 1, background: MEMBER_COLORS[(s.member || 1) - 1], opacity: i <= index ? 1 : 0.18 }} />
+                  <span key={i} style={{ flex: 1, background: "#0F7C80", opacity: i <= index ? 1 : 0.18 }} />
                 ))}
               </div>
             </motion.section>
@@ -118,19 +110,12 @@ export default function App() {
         </div>
       </div>
 
-      {notes && (
-        <aside className="notes" aria-label="Speaker notes">
-          <b>{member ? `${team.members[member - 1].name} (M${member})` : ""}</b> {slide.notes}
-        </aside>
-      )}
-
       {overview && (
         <div className="overlay" role="dialog" aria-label="Slide overview">
-          <p style={{ color: "#CADCFC", marginTop: 0 }}>←/→ or Space: navigate · N: speaker notes · O / Esc: overview · F: fullscreen · Home/End</p>
+          <p style={{ color: "#CADCFC", marginTop: 0 }}>←/→ or Space: navigate · O / Esc: overview · F: fullscreen · Home/End</p>
           <div className="grid-ov">
             {SLIDES.map((s, i) => (
               <button key={i} className="ov-item" aria-current={i === index} onClick={() => { go(i); setOverview(false); }}>
-                <span className="pill" style={{ background: MEMBER_COLORS[(s.member || 1) - 1] }}>M{s.member || 1}</span>
                 <b>{i + 1}. {s.title}</b>
               </button>
             ))}

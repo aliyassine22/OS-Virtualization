@@ -1,10 +1,10 @@
 # Presentations
 
-The two decks have the same storyline, colours and speaker badges (M1–M4). Use whichever you prefer: the PowerPoint is the safe choice for any classroom PC, and the React deck adds live widgets.
+The two decks have the same storyline and colours. They contain no presenter tags or speaker notes, so they can be submitted directly; who says what is in `team/Member_N_Guide.pdf`. Use whichever you prefer: the PowerPoint is the safe choice for any classroom PC, and the React deck adds live widgets.
 
 ## PowerPoint: `powerpoint/Virtualization_in_OS.pptx`
 
-- 23 slides in 4 PowerPoint **sections**, one per member, with **speaker notes** on every slide.
+- 23 slides in 4 topical PowerPoint **sections** (Introduction, CPU virtualization, Para-/hardware-assisted, Comparison & demo).
 - Built by `powerpoint/build_deck.js` (pptxgenjs) from the shared theme and diagrams. Rebuild with `npm run build:deck` from the repository root.
 - `Virtualization_in_OS.pdf` is a PDF fallback.
 - Image placeholders are dashed shapes named `IMG_PLACEHOLDER_<id>`; see `assets/placeholders/IMAGE_PROMPTS.md`.
@@ -22,7 +22,6 @@ npm run build      # static site in dist/ (serve with `npm run preview` or any s
 |---|---|
 | → / Space / PageDown | next step, then next slide |
 | ← / PageUp | back |
-| N | speaker notes |
 | O / Esc | overview grid |
 | F | fullscreen |
 | Home / End | first / last slide |
@@ -43,4 +42,4 @@ npm run build      # static site in dist/ (serve with `npm run preview` or any s
 - **Diagrams** are imported from `assets/diagrams/`.
 - **Images:** drop files into `public/images/<id>.png` and they replace the placeholders.
 
-**Design.** The deck follows Anthropic's public *frontend-design* skill (github.com/anthropics/skills). It uses a topic-specific token plan, with the palette and type roles documented at the top of `src/styles.css`. Structure encodes information: badge = speaker, progress bar = member sections. Motion is used only for slide transitions and in response to what the user does in the widgets, and it respects `prefers-reduced-motion`.
+**Design.** The deck follows Anthropic's public *frontend-design* skill (github.com/anthropics/skills). It uses a topic-specific token plan, with the palette and type roles documented at the top of `src/styles.css`. A thin progress bar shows position in the talk. Motion is used only for slide transitions and in response to what the user does in the widgets, and it respects `prefers-reduced-motion`.

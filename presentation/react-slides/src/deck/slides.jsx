@@ -4,32 +4,25 @@ import TrapStepper from "../widgets/TrapStepper.jsx";
 import PageWalk from "../widgets/PageWalk.jsx";
 import MigrationSim from "../widgets/MigrationSim.jsx";
 import CostExplorer from "../widgets/CostExplorer.jsx";
-import { team, MEMBER_COLORS } from "./team.js";
+import { team, PALETTE } from "./team.js";
 
 const C = { indigo: "#3D4F8C", teal: "#0F7C80", amber: "#B8741A", red: "#C8553D", slate: "#4A5560", green: "#2E8B57" };
 
 /**
- * Each slide: { title, member (1-4), steps (number of → reveals), dark, notes, render }.
+ * Each slide: { title, steps (number of → reveals), dark, hideTitle, render }.
  * Order and content mirror the PowerPoint deck; widgets replace static slides where
  * interaction explains more than a picture.
  */
 export const SLIDES = [
-  // ======================================================= M1
+  // ======================================================= Introduction and background
   {
-    title: "Virtualization in Operating Systems", member: 1, dark: true, hideTitle: true, hideBadge: true,
-    notes: "Welcome. Topic: virtualization in operating systems and the three techniques that make it possible - full, para- and hardware-assisted virtualization. Four presenters; I cover the introduction and background.",
+    title: "Virtualization in Operating Systems", dark: true, hideTitle: true,
     render: () => (
       <div className="row grow" style={{ alignItems: "stretch" }}>
         <div className="col grow" style={{ justifyContent: "center" }}>
           <h1 style={{ fontSize: 62, marginBottom: 10 }}>{team.title}</h1>
           <p className="lead" style={{ fontSize: 26 }}>{team.subtitle}</p>
-          <div className="row" style={{ gap: 14, marginTop: 30, flexWrap: "wrap" }}>
-            {team.members.map((m, i) => (
-              <span key={m.id} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 18 }}>
-                <span className="num" style={{ background: MEMBER_COLORS[i] }}>{i + 1}</span>{m.name}
-              </span>
-            ))}
-          </div>
+          <p style={{ fontSize: 20, marginTop: 30, color: "#fff" }}>{team.members.map((m) => m.name).join("  ·  ")}</p>
           <p style={{ color: "#8fa3c7", fontSize: 16, marginTop: 18 }}>{team.course} · {team.university} · {team.date}</p>
         </div>
         <ImageSlot id="hero" desc="One physical server splitting into several glowing, isolated virtual machines" style={{ width: 400 }} />
@@ -37,22 +30,19 @@ export const SLIDES = [
     ),
   },
   {
-    title: "Objectives and roadmap", member: 1,
-    notes: "Objectives: understand what virtualization is and why it matters; the theory deciding whether a CPU can be virtualized; full, para- and hardware-assisted virtualization; and see them working live. Introduce each speaker.",
+    title: "Outline",
     render: () => {
       const parts = [
-        ["What & why", "History", "Hypervisor types"], ["Popek-Goldberg", "Trap-and-emulate", "The x86 problem", "Binary translation"],
-        ["Para-virtualization", "VT-x / AMD-V", "EPT / NPT", "I/O virtualization"], ["Comparison", "Applications & migration", "Live demo", "Conclusion"],
+        ["Background", ["What and why", "History", "Hypervisor types"]],
+        ["CPU virtualization", ["Popek-Goldberg", "Trap-and-emulate", "The x86 problem", "Full virtualization"]],
+        ["Modern techniques", ["Para-virtualization", "VT-x / AMD-V", "EPT / NPT", "I/O virtualization"]],
+        ["In practice", ["Comparison", "Applications & migration", "Live demo", "Conclusion"]],
       ];
-      const slots = ["0:00 - 4:30", "4:30 - 9:15", "9:15 - 14:00", "14:00 - 20:00"];
       return (
         <div className="body">
           <div className="row grow">
-            {team.members.map((m, i) => (
-              <Card key={m.id} title={m.name} num={i + 1} color={MEMBER_COLORS[i]} style={{ flex: 1 }}>
-                <List items={parts[i]} />
-                <p className="muted" style={{ marginTop: 12, fontSize: 15 }}>{slots[i]}</p>
-              </Card>
+            {parts.map(([t, items], i) => (
+              <Card key={t} title={t} num={i + 1} color={PALETTE[i]} style={{ flex: 1 }}><List items={items} /></Card>
             ))}
           </div>
           <Takeaway>One problem (sensitive instructions that do not trap), three solutions, one live demo.</Takeaway>
@@ -61,8 +51,7 @@ export const SLIDES = [
     },
   },
   {
-    title: "What is virtualization?", member: 1, steps: 3,
-    notes: "Definition from the brief: virtual rather than physical versions of resources - hardware platforms, storage, networks. A VM is an isolated environment running a full OS as if on dedicated hardware. The hypervisor or VMM creates VMs, allocates resources and enforces isolation. All VMs share the same physical hardware.",
+    title: "What is virtualization?", steps: 3,
     render: () => (
       <div className="row grow">
         <div className="col grow">
@@ -75,8 +64,7 @@ export const SLIDES = [
     ),
   },
   {
-    title: "Why it matters", member: 1,
-    notes: "Benefits from the brief: resource utilization, lower hardware cost, scalability and flexibility, isolation for testing, and disaster recovery through live migration. These are why clouds, data centers and developers use VMs.",
+    title: "Why it matters",
     render: () => (
       <div className="body">
         <div className="row grow">
@@ -93,8 +81,7 @@ export const SLIDES = [
     ),
   },
   {
-    title: "60 years of virtualization", member: 1,
-    notes: "IBM CP-40/CP-67 (1967) and VM/370 (1972). Popek & Goldberg 1974. VMware 1999 (binary translation), Xen 2003 (para-virtualization), Intel VT-x 2005 / AMD-V 2006, KVM 2007, NPT/EPT 2007-08. Then containers, microVMs and confidential VMs.",
+    title: "60 years of virtualization",
     render: () => (
       <div className="body">
         <Diagram name="fig_timeline" alt="Timeline of virtualization" />
@@ -103,8 +90,7 @@ export const SLIDES = [
     ),
   },
   {
-    title: "Hypervisor types", member: 1,
-    notes: "Type 1 bare-metal: ESXi, Xen, Hyper-V - servers and clouds. Type 2 hosted: VirtualBox, VMware Workstation - desktops. KVM turns Linux into a Type 1 hypervisor with QEMU for devices. Hand-over: how can a hypervisor control a CPU that the guest believes it owns?",
+    title: "Hypervisor types",
     render: () => (
       <div className="body">
         <Diagram name="fig_hypervisor_types" alt="Type 1 vs Type 2 hypervisors" />
@@ -112,10 +98,9 @@ export const SLIDES = [
       </div>
     ),
   },
-  // ======================================================= M2
+  // ======================================================= CPU virtualization
   {
-    title: "What must a hypervisor virtualize?", member: 2, steps: 3,
-    notes: "Three resources: CPU, memory, I/O. Popek & Goldberg define a VMM by three properties: equivalence, resource control and efficiency. Efficiency separates virtualization from slow emulation.",
+    title: "What must a hypervisor virtualize?", steps: 3,
     render: () => (
       <div className="row grow">
         <div className="col" style={{ width: 380 }}>
@@ -133,8 +118,7 @@ export const SLIDES = [
     ),
   },
   {
-    title: "Trap-and-emulate", member: 2, steps: 1,
-    notes: "Privileged instructions trap outside ring 0; sensitive instructions touch privileged state. Theorem: if sensitive ⊆ privileged, a VMM can be built. Run the guest kernel deprivileged; ordinary instructions run natively, sensitive ones trap and are emulated on a virtual CPU.",
+    title: "Trap-and-emulate", steps: 1,
     render: () => (
       <div className="body">
         <Diagram name="fig_trap_emulate" alt="Trap and emulate flow" style={{ flex: "0 0 230px" }} />
@@ -147,8 +131,7 @@ export const SLIDES = [
     ),
   },
   {
-    title: "The x86 problem", member: 2,
-    notes: "Classic x86 has 17 sensitive but unprivileged instructions (Robin & Irvine 2000). POPF in ring 1 silently ignores the IF bit; SGDT reveals the host's GDT. No trap, so the VMM never notices. Use the stepper: run the naive VMM and watch POPF and SGDT slip through.",
+    title: "The x86 problem",
     render: () => (
       <div className="body">
         <Diagram name="fig_popek_goldberg" alt="Sensitive vs privileged sets" />
@@ -157,13 +140,11 @@ export const SLIDES = [
     ),
   },
   {
-    title: "See it fail: naive trap-and-emulate", member: 2,
-    notes: "Interactive. Run the naive VMM: privileged instructions trap correctly, but SGDT returns the host's GDT base and POPF fails to mask interrupts, so the critical section runs unmasked. Compare with Native. The VMM never noticed - equivalence is violated.",
+    title: "See it fail: naive trap-and-emulate",
     render: () => <div className="body"><TrapStepper initialMode="naive" modes={["native", "naive"]} /></div>,
   },
   {
-    title: "Full virtualization: binary translation", member: 2, steps: 2,
-    notes: "VMware 1999. Unmodified guest. User code runs directly; kernel code is translated basic block by basic block into a translation cache. Sensitive instructions become in-line sequences or VMM call-outs: no trap needed. Not the same as emulation (QEMU TCG, Bochs translate everything).",
+    title: "Full virtualization: binary translation", steps: 2,
     render: () => (
       <div className="body">
         <div className="row">
@@ -182,8 +163,7 @@ export const SLIDES = [
     ),
   },
   {
-    title: "Shadow page tables", member: 2,
-    notes: "Guest maps GVA→GPA, but real memory is HPA. The VMM keeps shadow tables GVA→HPA loaded in the MMU, write-protects guest page tables and intercepts every update and CR3 switch. Cheap TLB misses, expensive page-table updates. Hand-over to M3: change the guest, or change the CPU?",
+    title: "Shadow page tables",
     render: () => (
       <div className="body">
         <div className="row" style={{ alignItems: "center", gap: 0, marginTop: 10 }}>
@@ -205,10 +185,9 @@ export const SLIDES = [
       </div>
     ),
   },
-  // ======================================================= M3
+  // ======================================================= Para- and hardware-assisted
   {
-    title: "Para-virtualization", member: 3,
-    notes: "Xen 2003. The guest kernel is modified: hypercalls replace sensitive instructions, interrupt masking is a write to a shared page, page-table updates are batched, devices use split front-end/back-end drivers. About 3,000 lines changed in Linux. Closed OSs cannot be ported; survives today as virtio drivers.",
+    title: "Para-virtualization",
     render: () => (
       <div className="body">
         <div className="row grow">
@@ -226,8 +205,7 @@ export const SLIDES = [
     ),
   },
   {
-    title: "Hardware-assisted virtualization", member: 3, steps: 1,
-    notes: "Intel VT-x 2005, AMD-V 2006. VMX root (hypervisor) vs non-root (guest). Guest kernel in ring 0 on its own CPU state in the VMCS/VMCB, so POPF/CLI just change the guest's copy. VMLAUNCH/VMRESUME enter the guest; configured events cause VM exits with an exit reason. Unmodified guests, simple VMM - KVM is mostly exit handlers.",
+    title: "Hardware-assisted virtualization", steps: 1,
     render: () => (
       <div className="body">
         <Diagram name="fig_vtx" alt="Intel VT-x architecture" />
@@ -236,18 +214,15 @@ export const SLIDES = [
     ),
   },
   {
-    title: "Instruction by instruction: BT vs PV vs VT-x", member: 3,
-    notes: "Interactive. Same guest path under each technique. BT: sensitive instructions translated in-line. PV: the source shows hypercalls and shared-page writes. VT-x: CLI, POPF and SGDT run natively on the guest's own state; only OUT and HLT exit. Untick EPT to show first-generation behaviour: CR3 loads and page-table writes also exit.",
+    title: "Instruction by instruction: BT vs PV vs VT-x",
     render: () => <div className="body"><TrapStepper initialMode="vtx" modes={["naive", "bt", "pv", "vtx"]} /></div>,
   },
   {
-    title: "Nested paging: EPT / NPT", member: 3,
-    notes: "First-generation VT-x still needed shadow paging and expensive exits (Adams & Agesen 2006). Nested paging (AMD NPT 2007, Intel EPT 2008): hardware walks guest table then host table. No page-table exits, but up to 24 references per TLB miss. Animate: native 4, nested 24, huge pages 19.",
+    title: "Nested paging: EPT / NPT",
     render: () => <div className="body"><PageWalk /><Takeaway>No page-table exits, but a TLB miss costs up to 24 references; TLBs, walk caches, large pages and VPID hide most of it.</Takeaway></div>,
   },
   {
-    title: "Virtualizing I/O", member: 3,
-    notes: "Emulation: stock driver, every register access traps to QEMU - compatible, slow. Para-virtual (virtio): shared rings, batching - fast, needs a driver. Direct assignment with IOMMU (VT-d / AMD-Vi) and SR-IOV - near native, harder to migrate. Hand-over to M4.",
+    title: "Virtualizing I/O",
     render: () => (
       <div className="body">
         <Diagram name="fig_io" alt="I/O virtualization approaches" />
@@ -255,15 +230,13 @@ export const SLIDES = [
       </div>
     ),
   },
-  // ======================================================= M4
+  // ======================================================= Comparison, applications, demo, conclusion
   {
-    title: "Where does the guest kernel run?", member: 4,
-    notes: "Recap: full virtualization runs the kernel in ring 1, translated; para-virtualization runs a modified kernel in ring 1 using hypercalls; hardware-assisted runs the unmodified kernel in non-root ring 0 with VM exits.",
+    title: "Where does the guest kernel run?",
     render: () => <div className="body"><Diagram name="fig_rings" alt="Privilege rings per technique" /><Takeaway>Rewrite the code (BT), rewrite the source (PV), or extend the CPU (VT-x / AMD-V).</Takeaway></div>,
   },
   {
-    title: "Comparison", member: 4,
-    notes: "Read the table row by row. Modern systems are hybrids: KVM, Hyper-V and ESXi use hardware assistance for CPU and memory and virtio para-virtual drivers for I/O.",
+    title: "Comparison",
     render: () => {
       const rows = [
         ["Guest OS", "Unmodified", "Modified kernel", "Unmodified"],
@@ -286,18 +259,15 @@ export const SLIDES = [
     },
   },
   {
-    title: "Live migration (pre-copy)", member: 4,
-    notes: "Applications: cloud IaaS, consolidation, dev/test, security isolation, disaster recovery. Pre-copy (Clark et al. 2005): copy memory while running, re-send dirtied pages, short stop-and-copy. Drag the dirty-rate slider past the bandwidth to show non-convergence.",
+    title: "Live migration (pre-copy)",
     render: () => <div className="body"><MigrationSim /></div>,
   },
   {
-    title: "VMs vs containers", member: 4,
-    notes: "Containers share one kernel (namespaces + cgroups): light, millisecond start, weaker isolation. VMs bring their own kernel with hardware-enforced isolation. Clouds often run containers inside VMs; microVMs (Firecracker) combine both.",
+    title: "VMs vs containers",
     render: () => <div className="body"><Diagram name="fig_containers" alt="VMs vs containers" /><Takeaway>Containers share the kernel (light); VMs virtualize the hardware (strong isolation).</Takeaway></div>,
   },
   {
-    title: "Live demo: vdemo", member: 4,
-    notes: "Switch to the terminal: python -m vdemo tour. 1 host check, 2 POPF/SGDT failure, 3 five engines, 4 memory, 5 migration, 6 real KVM through /dev/kvm. Without KVM the tool prints a clearly labelled simulated result.",
+    title: "Live demo: vdemo",
     render: () => (
       <div className="body">
         <div className="row grow" style={{ flexWrap: "wrap" }}>
@@ -311,19 +281,17 @@ export const SLIDES = [
     ),
   },
   {
-    title: "Demo results: explore the cost model", member: 4,
-    notes: "Backup for the live demo, and interactive: naive trap-and-emulate is slow and wrong, BT correct but heavy, PV fastest, VT-x without EPT suffers exits, EPT removes most. Lower the VM-exit cost to show why modern hardware assistance wins.",
+    title: "Demo results: explore the cost model",
     render: () => <div className="body"><CostExplorer /></div>,
   },
   {
-    title: "Conclusion", member: 4, dark: true, steps: 1,
-    notes: "Virtualization turns hardware into isolated, mobile, software-defined resources. One x86 problem, three solutions that now coexist. Perspectives: confidential computing (SEV-SNP, TDX), microVMs, nested virtualization, ARM and RISC-V.",
+    title: "Conclusion", dark: true, steps: 1,
     render: () => (
       <div className="row grow">
         <div className="col grow" style={{ justifyContent: "center" }}>
           <p className="lead" style={{ fontSize: 28, color: "#fff" }}>One problem: sensitive instructions that do not trap.</p>
           {["Full virtualization rewrote the code", "Para-virtualization rewrote the source", "Hardware assistance changed the CPU"].map((t, i) => (
-            <p key={t} style={{ fontSize: 24, margin: "6px 0", color: "#CADCFC" }}><span className="num" style={{ background: MEMBER_COLORS[i + 1], marginRight: 12 }}>{i + 1}</span>{t}</p>
+            <p key={t} style={{ fontSize: 24, margin: "6px 0", color: "#CADCFC" }}><span className="num" style={{ background: PALETTE[i + 1], marginRight: 12 }}>{i + 1}</span>{t}</p>
           ))}
         </div>
         <Reveal at={1} className="col" style={{ width: 420, justifyContent: "center" }}>
@@ -336,8 +304,7 @@ export const SLIDES = [
     ),
   },
   {
-    title: "References and questions", member: 4,
-    notes: "Invite questions. Each member answers questions on their own part.",
+    title: "References and questions",
     render: () => (
       <div className="row grow">
         <ol className="col grow" style={{ fontSize: 17, lineHeight: 1.45, margin: 0, paddingLeft: 22 }}>

@@ -4,7 +4,7 @@
  *   node presentation/powerpoint/build_deck.js
  *   -> presentation/powerpoint/Virtualization_in_OS.pptx
  *
- * Structure: theme -> layouts -> sections (one per member) -> slides with speaker notes.
+ * Structure: theme -> layouts -> topical sections -> slides.
  * Image placeholders are dashed boxes named IMG_PLACEHOLDER_<id>; see
  * assets/placeholders/IMAGE_PROMPTS.md for what to generate for each.
  */
@@ -28,7 +28,6 @@ const THEME = {
   },
 };
 const HEX = THEME.colors;
-const MEMBER_COLORS = [HEX.dk2, HEX.accent1, HEX.accent2, HEX.accent4];
 
 const pres = new pptxgen();
 pres.layout = "LAYOUT_16x9"; // 10 x 5.625 in
@@ -86,11 +85,6 @@ function placeholder(slide, id, x, y, w, h, desc, dark = false) {
     { text: `${id}: ${desc}`, options: { fontSize: 10, color: dark ? "CADCFC" : HEX.accent5 } },
   ], { x: x + 0.15, y, w: w - 0.3, h, align: "center", valign: "middle", isTextBox: true, objectName: `IMG_PLACEHOLDER_${id}_label` });
 }
-function badge(slide, m) {
-  const col = MEMBER_COLORS[m - 1];
-  slide.addShape(pres.shapes.OVAL, { x: 9.0, y: 0.33, w: 0.6, h: 0.6, fill: { color: col }, objectName: `speaker_badge_M${m}` });
-  slide.addText(`M${m}`, { x: 9.0, y: 0.33, w: 0.6, h: 0.6, align: "center", valign: "middle", fontSize: 14, bold: true, color: "FFFFFF", margin: 0, isTextBox: true });
-}
 function card(slide, x, y, w, h, title, body, color, o = {}) {
   slide.addShape(pres.shapes.ROUNDED_RECTANGLE, {
     x, y, w, h, rectRadius: 0.08, fill: { color: o.fill || HEX.lt2 },
@@ -114,21 +108,19 @@ function takeaway(slide, text, y = 4.72) {
   slide.addText([{ text: "Key idea  ", options: { bold: true, color: HEX.accent1 } }, { text, options: { color: HEX.dk1 } }],
     { x: 0.65, y, w: 8.7, h: 0.42, fontSize: 13, valign: "middle", margin: 0, isTextBox: true });
 }
-function content(section, m, title, notes) {
+function content(section, title) {
   const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: section });
   s.addText(title, { placeholder: "title" });
-  badge(s, m);
-  s.addNotes(`[${team.members[m - 1].name} - M${m}]\n${notes}`);
   return s;
 }
 const SEC = [
-  `M1 - Introduction & background (${team.members[0].name})`,
-  `M2 - CPU virtualization & full virtualization (${team.members[1].name})`,
-  `M3 - Para- & hardware-assisted virtualization (${team.members[2].name})`,
-  `M4 - Comparison, applications, demo & conclusion (${team.members[3].name})`,
+  "Introduction and background",
+  "CPU virtualization and full virtualization",
+  "Para- and hardware-assisted virtualization",
+  "Comparison, applications, demo and conclusion",
 ];
 
-// ================================================================== M1
+// ================================================================== Introduction and background
 pres.addSection({ title: SEC[0] });
 {
   const s = pres.addSlide({ masterName: "DARK", sectionTitle: SEC[0] });
@@ -137,33 +129,27 @@ pres.addSection({ title: SEC[0] });
   s.addText(team.members.map((m) => m.name).join("   |   "), { x: 0.6, y: 4.15, w: 5.8, h: 0.35, fontSize: 13, color: "FFFFFF", margin: 0, isTextBox: true });
   s.addText(`${team.course}  -  ${team.university}  -  ${team.date}`, { x: 0.6, y: 4.5, w: 5.8, h: 0.3, fontSize: 11, color: "8FA3C7", margin: 0, isTextBox: true });
   placeholder(s, "hero", 6.6, 0.75, 2.9, 4.1, "Abstract illustration: one physical server splitting into several glowing, isolated virtual machines", true);
-  s.addNotes(`[${team.members[0].name} - M1]\nGood morning. Our topic is virtualization in operating systems, and in particular the three techniques that make it possible: full virtualization, para-virtualization and hardware-assisted virtualization. We are four presenters; I will introduce the topic and the background, then hand over.`);
 }
 {
-  const s = content(SEC[0], 1, "Objectives and roadmap", "Objectives: (1) understand what virtualization is and why it matters, (2) understand the theory that decides whether a CPU can be virtualized, (3) explain full, para- and hardware-assisted virtualization and their trade-offs, (4) see them working in a live demo. Introduce each speaker and their part.");
-  const slots = ["0:00-4:30", "4:30-9:15", "9:15-14:00", "14:00-20:00"];
-  const topics = [
-    ["What & why", "History", "Hypervisor types"],
-    ["Popek-Goldberg", "Trap-and-emulate", "x86 problem", "Binary translation"],
-    ["Para-virtualization", "VT-x / AMD-V", "EPT / NPT", "I/O virtualization"],
-    ["Comparison", "Applications & migration", "Live demo", "Conclusion"],
+  const s = content(SEC[0], "Outline");
+  const parts = [
+    ["Background", ["What and why", "History", "Hypervisor types"], HEX.dk2],
+    ["CPU virtualization", ["Popek-Goldberg", "Trap-and-emulate", "The x86 problem", "Full virtualization"], HEX.accent1],
+    ["Modern techniques", ["Para-virtualization", "VT-x / AMD-V", "EPT / NPT", "I/O virtualization"], HEX.accent2],
+    ["In practice", ["Comparison", "Applications & migration", "Live demo", "Conclusion"], HEX.accent4],
   ];
-  team.members.forEach((m, i) => {
-    const x = 0.5 + i * 2.28;
-    card(s, x, 1.25, 2.12, 3.2, m.name, topics[i], MEMBER_COLORS[i], { num: `M${i + 1}`.slice(1), bodySize: 12.5 });
-    s.addText(slots[i], { x: x + 0.18, y: 4.0, w: 1.8, h: 0.3, fontSize: 11, color: HEX.accent5, italic: true, margin: 0, isTextBox: true });
-  });
+  parts.forEach(([t, items, c], i) => card(s, 0.5 + i * 2.28, 1.25, 2.12, 3.2, t, items, c, { num: i + 1, bodySize: 12.5 }));
   takeaway(s, "One problem (sensitive instructions that do not trap), three solutions, one live demo.");
 }
 {
-  const s = content(SEC[0], 1, "What is virtualization?", "Definition: creating virtual rather than physical versions of resources - CPU, memory, storage, network. A virtual machine is an isolated environment that runs a full OS and believes it owns the hardware. The hypervisor, or virtual machine monitor, is the software layer that creates VMs, allocates resources and enforces isolation. Emphasise: every VM shares the same physical hardware, yet none can see or harm the others.");
+  const s = content(SEC[0], "What is virtualization?");
   card(s, 0.5, 1.2, 5.3, 1.0, "Virtual machine (VM)", "An isolated environment running a complete OS, as if on dedicated hardware.", HEX.dk2, { num: 1 });
   card(s, 0.5, 2.35, 5.3, 1.0, "Hypervisor / VMM", "The layer that creates VMs and multiplexes CPU, memory and I/O among them.", HEX.accent1, { num: 2 });
   card(s, 0.5, 3.5, 5.3, 1.0, "Isolation and efficiency", "A fault or attack in one VM must not affect the others or the host.", HEX.accent2, { num: 3 });
   placeholder(s, "datacenter", 6.1, 1.2, 3.4, 3.3, "Modern data-center aisle with server racks (photo-style)");
 }
 {
-  const s = content(SEC[0], 1, "Why it matters", "Benefits listed in the brief: better resource utilization, lower hardware cost, scalability and flexibility, isolation for testing, and disaster recovery through live migration. These are why clouds, data centers and developers all use VMs. Mention that our demo shows a live migration with about 77 ms of downtime.");
+  const s = content(SEC[0], "Why it matters");
   const items = [
     ["Consolidation", "Many under-used servers become one well-used host: less hardware, energy and space.", HEX.accent1],
     ["Isolation", "Run untrusted code, several OSs and test setups side by side, safely.", HEX.dk2],
@@ -177,20 +163,20 @@ pres.addSection({ title: SEC[0] });
   takeaway(s, "Used everywhere: cloud computing, data centers, development and test, disaster recovery.");
 }
 {
-  const s = content(SEC[0], 1, "60 years of virtualization", "IBM CP-40/CP-67 (1967) and VM/370 (1972) on mainframes. Popek and Goldberg formalized the requirements in 1974. On PCs, x86 was considered non-virtualizable until VMware (1999) used binary translation. Xen (2003) introduced para-virtualization. Intel VT-x (2005) and AMD-V (2006) added hardware support, followed by nested paging (2007-2008) and KVM in Linux (2007). Today: containers, microVMs and confidential VMs.");
+  const s = content(SEC[0], "60 years of virtualization");
   centeredImage(s, "fig_timeline", 1.15, 9.0, 3.4, "Timeline from IBM CP-67 to confidential VMs");
   takeaway(s, "Each era answered the same question: how do we run an OS on hardware it does not own?");
 }
 {
-  const s = content(SEC[0], 1, "Hypervisor types", "Type 1 (bare-metal) hypervisors run directly on hardware: ESXi, Xen, Hyper-V; they are used in servers and clouds. Type 2 (hosted) hypervisors run as applications on a host OS: VirtualBox, VMware Workstation. KVM is special: a Linux kernel module turns Linux itself into a Type 1 hypervisor, and QEMU provides the devices. Hand over to M2: 'How can a hypervisor control a CPU that the guest believes it owns?'");
+  const s = content(SEC[0], "Hypervisor types");
   centeredImage(s, "fig_hypervisor_types", 1.1, 8.6, 3.55, "Type 1 vs Type 2 hypervisor stacks");
   takeaway(s, "Type 1 sits on the hardware (servers, cloud); Type 2 sits on an OS (desktops).");
 }
 
-// ================================================================== M2
+// ================================================================== CPU virtualization
 pres.addSection({ title: SEC[1] });
 {
-  const s = content(SEC[1], 2, "What must a hypervisor virtualize?", "Three resources: the CPU, memory and I/O. For the CPU, Popek and Goldberg (1974) define a VMM by three properties. Equivalence: the guest behaves exactly as on real hardware. Resource control: the VMM stays in charge of all resources. Efficiency: most instructions run directly on the CPU. Efficiency is what separates virtualization from slow emulation.");
+  const s = content(SEC[1], "What must a hypervisor virtualize?");
   ["CPU", "Memory", "I/O devices"].forEach((t, i) => {
     const d = ["privileged state and instructions", "address translation, page tables", "devices, interrupts, DMA"][i];
     card(s, 0.5, 1.2 + i * 1.12, 3.4, 0.98, t, d, [HEX.dk2, HEX.accent1, HEX.accent5][i], { titleSize: 16 });
@@ -202,19 +188,19 @@ pres.addSection({ title: SEC[1] });
   });
 }
 {
-  const s = content(SEC[1], 2, "Trap-and-emulate", "Privileged instructions trap when run outside ring 0. Sensitive instructions touch privileged state. Theorem: if every sensitive instruction is privileged, we can build a VMM. Run the guest kernel deprivileged; ordinary instructions run natively, and every sensitive instruction traps to the VMM, which emulates it on a virtual CPU and resumes the guest. Walk through the CLI example in the diagram.");
+  const s = content(SEC[1], "Trap-and-emulate");
   centeredImage(s, "fig_trap_emulate", 1.1, 8.8, 1.85, "Trap and emulate flow");
   card(s, 0.5, 3.1, 4.4, 1.45, "Privileged instruction", "Traps if executed outside ring 0 (e.g. CLI, HLT, MOV CR3).", HEX.accent1, { titleSize: 15 });
   card(s, 5.1, 3.1, 4.4, 1.45, "Sensitive instruction", "Reads or changes privileged machine state (e.g. interrupt flag, page tables).", HEX.dk2, { titleSize: 15 });
   takeaway(s, "Virtualizable  <=>  sensitive instructions are a subset of privileged instructions.");
 }
 {
-  const s = content(SEC[1], 2, "The x86 problem", "On classic x86, 17 instructions are sensitive but not privileged (Robin and Irvine, 2000). POPF executed in ring 1 silently ignores the interrupt-flag bit: no trap, no error. The guest believes interrupts are disabled while they are not. SGDT reveals the host's descriptor table. The VMM never notices, so equivalence is violated. Our demo step 2 shows exactly this.");
+  const s = content(SEC[1], "The x86 problem");
   centeredImage(s, "fig_popek_goldberg", 1.05, 8.2, 3.35, "Venn diagrams of sensitive and privileged instructions");
   takeaway(s, "POPF in ring 1 silently drops the IF bit: no trap, wrong behaviour. Three fixes follow.");
 }
 {
-  const s = content(SEC[1], 2, "Full virtualization: binary translation", "VMware, 1999. The guest is unmodified. User code runs directly. Kernel code is translated on the fly, one basic block at a time, the first time it executes; results go into a translation cache. Most instructions are copied as-is; sensitive ones become safe in-line sequences or call-outs to the VMM. No trap is needed for POPF anymore. Note: full virtualization is not emulation - QEMU TCG or Bochs translate everything and are much slower.");
+  const s = content(SEC[1], "Full virtualization: binary translation");
   const steps = [["Guest kernel", "basic block\nPOPF / CLI ..."], ["Translator", "rewrite sensitive\ninstructions"], ["Translation cache", "reuse on every\nlater execution"], ["Run natively", "ring 1, near\nfull speed"]];
   steps.forEach(([t, d], i) => {
     const x = 0.5 + i * 2.33;
@@ -227,7 +213,7 @@ pres.addSection({ title: SEC[1] });
   card(s, 5.1, 2.6, 4.4, 1.95, "Trade-offs", ["+ Works on any x86, no CPU support needed", "- Translation overhead", "- Very complex VMM", "- Costly page-table tracing (next slide)"], HEX.accent4);
 }
 {
-  const s = content(SEC[1], 2, "Shadow page tables", "The guest believes it maps virtual to physical addresses; the real memory is elsewhere. The VMM builds shadow page tables mapping guest virtual addresses directly to host physical addresses and loads them into the MMU. To keep them in sync, it write-protects the guest page tables and intercepts every update and every CR3 switch. A TLB miss is cheap, but fork-heavy or context-switch-heavy workloads become expensive. Hand over to M3: 'What if we change the guest, or the CPU, instead?'");
+  const s = content(SEC[1], "Shadow page tables");
   const y = 1.35;
   const nodes = [["GVA", "guest virtual", HEX.lt2, HEX.dk1], ["GPA", "guest 'physical'", HEX.dk2, "FFFFFF"], ["HPA", "real memory", HEX.accent5, "FFFFFF"]];
   nodes.forEach(([t, d, f, c], i) => {
@@ -245,10 +231,10 @@ pres.addSection({ title: SEC[1] });
   card(s, 5.1, 3.0, 4.4, 1.55, "Expensive", ["Every guest page-table write traps", "Every process switch (CR3) traps"], HEX.accent4);
 }
 
-// ================================================================== M3
+// ================================================================== Para- and hardware-assisted
 pres.addSection({ title: SEC[2] });
 {
-  const s = content(SEC[2], 3, "Para-virtualization", "Xen, 2003. Instead of hiding the hypervisor, the guest kernel is modified to cooperate with it. Sensitive operations become hypercalls - like system calls, but to the hypervisor. Disabling interrupts becomes a write to a shared page: no trap at all. Page-table updates are batched into one multicall. Devices use split drivers: a front-end in the guest and a back-end in Dom0, connected by shared-memory rings. Porting Linux changed about 3,000 lines. Downside: you need the kernel source, so closed OSs cannot be ported. Today it lives on as virtio drivers.");
+  const s = content(SEC[2], "Para-virtualization");
   card(s, 0.5, 1.2, 4.6, 2.35, "How it works", ["Guest kernel ported to a hypervisor API", "Hypercalls replace sensitive instructions", "Batched page-table updates (multicall)", "Event channels replace interrupts", "Split front-end / back-end drivers"], HEX.accent1);
   s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 5.3, y: 1.2, w: 4.2, h: 2.35, rectRadius: 0.08, fill: { color: HEX.dk1 } });
   s.addText([
@@ -264,30 +250,30 @@ pres.addSection({ title: SEC[2] });
   card(s, 5.3, 3.7, 4.2, 0.95, "- Guest must be modified", null, HEX.accent4, { titleSize: 14 });
 }
 {
-  const s = content(SEC[2], 3, "Hardware-assisted virtualization", "Intel VT-x (2005) and AMD-V (2006) make x86 classically virtualizable. The CPU gains a new mode: VMX root for the hypervisor, non-root for guests. The guest kernel runs in ring 0, but on its own copy of the CPU state stored in the VMCS (AMD: VMCB). So POPF or CLI simply change the guest's copy: no trap needed. The hypervisor starts the guest with VMLAUNCH/VMRESUME; configured events (I/O, HLT, CPUID, EPT faults) cause a VM exit with an exit reason. Result: unmodified guests and a much simpler VMM - KVM is mostly exit handlers.");
+  const s = content(SEC[2], "Hardware-assisted virtualization");
   centeredImage(s, "fig_vtx", 1.05, 8.4, 3.4, "Intel VT-x architecture and VMCS");
   takeaway(s, "Unmodified guest in ring 0 on its own CPU state; the VMCS decides what causes a VM exit.");
 }
 {
-  const s = content(SEC[2], 3, "Nested paging: EPT / NPT", "First-generation VT-x still needed shadow page tables, and each VM exit cost thousands of cycles; Adams and Agesen (2006) showed it was often slower than binary translation. Nested paging (AMD NPT 2007, Intel EPT 2008) lets the hardware translate GVA to GPA with the guest table, and GPA to HPA with the hypervisor's table. No more page-table traps, but a TLB miss can cost 24 memory references instead of 4. TLBs, page-walk caches, large pages and VPID tags hide most of this.");
+  const s = content(SEC[2], "Nested paging: EPT / NPT");
   centeredImage(s, "fig_memory", 1.05, 8.6, 3.6, "Nested paging and 2D page walk");
   takeaway(s, "No page-table exits; a TLB miss costs (4+1)(4+1) - 1 = 24 references instead of 4.");
 }
 {
-  const s = content(SEC[2], 3, "Virtualizing I/O", "Three options. Emulation: the guest sees a well-known device such as an e1000; every register access traps to a device model in QEMU - compatible but slow. Para-virtual I/O: virtio front-end and back-end drivers share rings and batch requests - fast, needs a driver. Direct assignment: the guest drives real hardware, an IOMMU (VT-d/AMD-Vi) remaps DMA and interrupts for isolation, and SR-IOV splits one device into many virtual functions - near-native, but harder to live-migrate. Hand over to M4.");
+  const s = content(SEC[2], "Virtualizing I/O");
   centeredImage(s, "fig_io", 1.05, 8.6, 3.5, "Three I/O virtualization approaches");
   takeaway(s, "Real systems mix them: hardware-assisted CPU + virtio I/O + pass-through for the fastest devices.");
 }
 
-// ================================================================== M4
+// ================================================================== Comparison, applications, demo, conclusion
 pres.addSection({ title: SEC[3] });
 {
-  const s = content(SEC[3], 4, "Where does the guest kernel run?", "Recap the three answers to the x86 problem in one picture. Full virtualization: guest kernel in ring 1, translated. Para-virtualization: modified kernel in ring 1, using hypercalls. Hardware-assisted: unmodified kernel in ring 0 of non-root mode, with VM exits to the root-mode hypervisor.");
+  const s = content(SEC[3], "Where does the guest kernel run?");
   centeredImage(s, "fig_rings", 1.05, 8.8, 3.55, "Privilege rings per technique");
   takeaway(s, "Rewrite the code (BT), rewrite the source (PV), or extend the CPU (VT-x / AMD-V).");
 }
 {
-  const s = content(SEC[3], 4, "Comparison", "Read the table by rows: guest modification, how sensitive instructions are handled, memory virtualization, performance, complexity, examples. Stress that modern systems are hybrids: KVM, Hyper-V and ESXi use hardware assistance for the CPU and memory, and para-virtual virtio drivers for I/O.");
+  const s = content(SEC[3], "Comparison");
   const hdr = (t) => ({ text: t, options: { bold: true, color: "FFFFFF", fill: { color: HEX.dk1 }, align: "center" } });
   const rowLbl = (t) => ({ text: t, options: { bold: true, color: HEX.dk1, fill: { color: HEX.lt2 } } });
   const rows = [
@@ -303,7 +289,7 @@ pres.addSection({ title: SEC[3] });
   takeaway(s, "Modern hypervisors are hybrids: hardware-assisted CPU and memory + para-virtual I/O.");
 }
 {
-  const s = content(SEC[3], 4, "Applications and live migration", "Applications: cloud IaaS, data-center consolidation, development and test sandboxes, security isolation, disaster recovery. Live migration by pre-copy (Clark et al., 2005): copy all memory while the VM runs, re-send pages dirtied in the meantime, repeat until the dirty set is small, then pause briefly to copy the rest and resume on the target. In our demo: a 4 GiB VM over 1 Gbit/s has about 77 ms of downtime, compared with 34 s for stop-and-copy.");
+  const s = content(SEC[3], "Applications and live migration");
   card(s, 0.5, 1.15, 4.1, 3.45, "Where virtualization is used", ["Cloud computing (IaaS): VMs as the unit of rent", "Data centers: consolidation, elasticity", "Development and testing: snapshots, sandboxes", "Security: isolation of tenants", "Disaster recovery and high availability"], HEX.dk2);
   const steps = ["Copy ALL memory while the VM runs", "Re-send pages dirtied meanwhile", "Repeat until the dirty set is small", "Pause, copy the rest + CPU state, resume on target"];
   s.addText("Live migration (pre-copy)", { x: 4.85, y: 1.15, w: 4.6, h: 0.4, fontSize: 16, bold: true, color: HEX.accent1, margin: 0, isTextBox: true });
@@ -317,12 +303,12 @@ pres.addSection({ title: SEC[3] });
     { x: 4.85, y: 4.05, w: 4.7, h: 0.6, valign: "middle", margin: 0, isTextBox: true });
 }
 {
-  const s = content(SEC[3], 4, "VMs vs containers", "Containers are OS-level virtualization: namespaces and cgroups isolate processes, but all containers share one host kernel. They are lighter and start in milliseconds, but isolate less strongly and must use the host's kernel. VMs carry their own kernel and offer hardware-enforced isolation. Clouds often run containers inside VMs, and microVMs such as Firecracker combine both.");
+  const s = content(SEC[3], "VMs vs containers");
   centeredImage(s, "fig_containers", 1.05, 8.0, 3.4, "VMs vs containers");
   takeaway(s, "Containers share the kernel (light); VMs virtualize the hardware (strong isolation).");
 }
 {
-  const s = content(SEC[3], 4, "Live demo: vdemo", "Switch to the terminal and run python -m vdemo tour. Each step maps to one part of the talk. Step 1: host CPU flags (vmx/svm, ept, /dev/kvm). Step 2: naive trap-and-emulate breaks on POPF/SGDT (M2's slide). Step 3: same guest kernel under BT, PV and VT-x with and without EPT (M2 and M3). Step 4: shadow vs nested paging, 24 references (M3). Step 5: live migration (M4). Step 6: a real VM through /dev/kvm in 150 lines of Python. If the laptop lacks KVM, the tool shows a clearly labelled simulated result.");
+  const s = content(SEC[3], "Live demo: vdemo");
   const steps = [
     ["1  Host check", "vmx / svm, ept, /dev/kvm"], ["2  The x86 problem", "POPF and SGDT slip past the VMM"],
     ["3  Five engines", "native, T&E, BT, PV, VT-x(+EPT)"], ["4  Memory", "shadow vs nested, 4 vs 24 refs"],
@@ -338,7 +324,7 @@ pres.addSection({ title: SEC[3] });
     { x: 0.7, y: 3.85, w: 8.6, h: 0.75, fontFace: "Courier New", fontSize: 14, valign: "middle", margin: 0, isTextBox: true });
 }
 {
-  const s = content(SEC[3], 4, "Demo results", "Backup slide in case the live demo fails. Naive trap-and-emulate is both slow and wrong. BT is correct but heavy. PV is fastest. VT-x without EPT suffers from page-fault and CR3 exits; with EPT only I/O and HLT exit. The numbers come from an illustrative cost model with a kernel-heavy guest, so absolute slowdowns are exaggerated; real CPU-bound applications run within a few percent of native.");
+  const s = content(SEC[3], "Demo results");
   const labels = ["Native", "Trap-and-emulate*", "Full (BT)", "Para-virt.", "VT-x, no EPT", "VT-x + EPT"];
   const vals = [1.0, 17.0, 9.9, 2.1, 14.0, 3.1];
   s.addChart(pres.charts.BAR, [{ name: "Slowdown vs native", labels, values: vals }], {
@@ -368,10 +354,9 @@ pres.addSection({ title: SEC[3] });
   });
   s.addText(["Full virtualization rewrote the code", "Para-virtualization rewrote the source", "Hardware assistance changed the CPU"].map((t, i, a) => ({ text: t, options: { bullet: true, breakLine: i < a.length - 1 } })),
     { x: 0.6, y: 4.0, w: 5.6, h: 1.0, fontSize: 14, color: "FFFFFF", margin: 0, isTextBox: true, paraSpaceAfter: 4 });
-  s.addNotes(`[${team.members[3].name} - M4]\nSynthesis: virtualization turns hardware into isolated, mobile, software-defined resources. On x86 the problem was sensitive instructions that do not trap. Full virtualization rewrote the guest's code at run time, para-virtualization rewrote its source, and hardware assistance changed the processor. Modern systems combine them. Perspectives: confidential computing, microVMs, nested virtualization, and virtualization on ARM and RISC-V.`);
 }
 {
-  const s = content(SEC[3], 4, "References and questions", "Invite questions. Every member should be ready to answer questions on their own part; the general questions are listed in each member guide.");
+  const s = content(SEC[3], "References and questions");
   const refs = [
     "G. Popek, R. Goldberg, \"Formal requirements for virtualizable third generation architectures,\" CACM, 1974.",
     "J. Robin, C. Irvine, \"Analysis of the Intel Pentium's ability to support a secure VMM,\" USENIX Security, 2000.",

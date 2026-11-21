@@ -60,7 +60,7 @@ function guide(n) {
   kids.push(p([t(g.focus, { size: 22 })], { extra: { spacing: { before: 200, after: 200 } } }));
 
   kids.push(h1("1. Your part of the presentation", col));
-  kids.push(p("Slide numbers refer to the PowerPoint deck; speaker notes with the same content are in the deck (and press N in the React deck)."));
+  kids.push(p("Slide numbers refer to the PowerPoint deck (React deck numbers are in the table above). The decks carry no speaker notes or presenter tags: this guide is your script."));
   kids.push(table([["Slide", "What to say (talking points)"], ...g.slides], [2600, 6760], col));
 
   kids.push(h1("2. Report sections you must master", col));

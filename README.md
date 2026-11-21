@@ -6,12 +6,13 @@ Course project deliverables for **Topic 2: Virtualization in Operating Systems**
 - an IEEE-format report (DOCX + PDF)
 - a 20-minute PowerPoint deck
 - an interactive React deck
-- a runnable demo, with a guide PDF for each of the four presenters
+- a runnable demo
+- a guide PDF for each of the four presenters (kept separate: the decks themselves carry no presenter tags or notes, so they can be submitted as is)
 
 | Deliverable | Where | Open / run |
 |---|---|---|
 | **IEEE report** (5 pages) | [`report/output/`](report/output) | `IEEE_Report_Virtualization_in_OS.pdf` / `.docx` |
-| **PowerPoint deck** (23 slides, speaker notes) | [`presentation/powerpoint/`](presentation/powerpoint) | `Virtualization_in_OS.pptx` (PDF copy alongside) |
+| **PowerPoint deck** (23 slides) | [`presentation/powerpoint/`](presentation/powerpoint) | `Virtualization_in_OS.pptx` (PDF copy alongside) |
 | **React deck** (interactive) | [`presentation/react-slides/`](presentation/react-slides) | `npm install && npm run dev` |
 | **Demo code** | [`demo/`](demo) | `cd demo && python -m vdemo tour` |
 | **Member guides** (4 PDFs) | [`team/`](team) | `Member_1_Guide.pdf` … `Member_4_Guide.pdf` |

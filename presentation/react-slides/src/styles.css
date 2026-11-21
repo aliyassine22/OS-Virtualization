@@ -2,13 +2,11 @@
    ink #1F2A44 (text, dark slides) · guest indigo #3D4F8C · hypervisor teal #0F7C80
    trap/exit amber #E59A2B · failure red #C8553D · surface #F3F6F9 · paper #FFFFFF
    Type: IBM Plex Sans (headings 600-700, body 400), IBM Plex Mono only for code.
-   Layout: 1280x720 stage scaled to the window; left-aligned titles; one speaker
-   badge per slide (member colour); progress bar segmented by member section. */
+   Layout: 1280x720 stage scaled to the window; left-aligned titles; progress bar. */
 :root {
   --ink: #1f2a44; --indigo: #3d4f8c; --teal: #0f7c80; --amber: #e59a2b; --red: #c8553d;
   --slate: #4a5560; --surface: #f3f6f9; --paper: #ffffff; --muted: #5f6b78; --green: #2e8b57;
   --ice: #cadcfc; --line: #d5dde6;
-  --m1: var(--indigo); --m2: var(--teal); --m3: var(--amber); --m4: var(--red);
   font-family: "IBM Plex Sans", system-ui, sans-serif;
   color: var(--ink);
 }
@@ -34,9 +32,6 @@ code, .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; }
 .grow { flex: 1; }
 
 /* ---------------- chrome */
-.badge { position: absolute; top: 40px; right: 56px; width: 58px; height: 58px; border-radius: 50%;
-  display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 18px; }
-.badge small { position: absolute; top: 62px; font-size: 12px; font-weight: 500; color: var(--muted); white-space: nowrap; }
 .footer { position: absolute; left: 64px; right: 56px; bottom: 16px; display: flex; justify-content: space-between;
   font-size: 13px; color: var(--muted); }
 .dark .footer { color: #8fa3c7; }
@@ -84,13 +79,11 @@ code, .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; }
 .bad { color: var(--red); font-weight: 700; }
 .good { color: var(--green); font-weight: 700; }
 
-/* ---------------- overview & notes */
+/* ---------------- overview */
 .overlay { position: fixed; inset: 0; background: rgba(14,20,36,.96); z-index: 20; overflow: auto; padding: 32px; }
 .grid-ov { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
 .ov-item { background: #fff; border-radius: 10px; padding: 14px; text-align: left; border: 3px solid transparent; min-height: 110px; }
 .ov-item[aria-current="true"] { border-color: var(--amber); }
 .ov-item b { display: block; font-size: 15px; margin-top: 6px; }
-.notes { position: fixed; left: 0; right: 0; bottom: 0; max-height: 34vh; overflow: auto; z-index: 15; background: #fff;
-  border-top: 4px solid var(--amber); padding: 16px 28px; font-size: 18px; line-height: 1.5; }
 .help { position: fixed; right: 14px; bottom: 12px; z-index: 10; color: #8fa3c7; font-size: 12px; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
