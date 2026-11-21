@@ -1,0 +1,5 @@
+# The simulator uses only the Python standard library (3.9+).
+# Optional: charts for `python -m vdemo cpu --plot`
+matplotlib>=3.7
+# Optional: tests
+pytest>=7

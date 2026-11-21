@@ -1,0 +1,17 @@
+{
+  "name": "os-virtualization-deliverables",
+  "private": true,
+  "description": "Build scripts for the report (DOCX/PDF), member guides, PowerPoint deck and shared diagrams.",
+  "scripts": {
+    "build:diagrams": "node assets/build_diagrams.js",
+    "build:report": "node report/src/build_report.js",
+    "build:guides": "node team/src/build_guides.js",
+    "build:deck": "node presentation/powerpoint/build_deck.js",
+    "build:all": "npm run build:diagrams && npm run build:report && npm run build:guides && npm run build:deck"
+  },
+  "dependencies": {
+    "docx": "^9.5.1",
+    "pptxgenjs": "^3.12.0",
+    "sharp": "^0.33.5"
+  }
+}

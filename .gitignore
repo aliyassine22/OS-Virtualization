@@ -1,0 +1,8 @@
+node_modules/
+__pycache__/
+*.pyc
+.pytest_cache/
+demo/output/
+presentation/react-slides/dist/
+~$*
+.DS_Store
