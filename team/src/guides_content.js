@@ -74,8 +74,8 @@ module.exports.members = {
       ["8. Trap-and-emulate", "Define privileged and sensitive. Walk the CLI example: guest in ring 1 -> trap -> VMM updates the virtual interrupt flag -> guest resumes. State the theorem."],
       ["9. The x86 problem", "17 instructions are sensitive but not privileged. POPF in ring 1 silently ignores IF; SGDT leaks the host GDT. No trap, so the VMM is blind. "],
       ["10. See it fail: naive trap-and-emulate", "PowerPoint: read the table - CLI/STI/MOV CR3/OUT trap and are emulated correctly, but SGDT and POPF never trap, so the guest sees the host's GDT base and its critical section runs unmasked. React: click Step through the naive VMM and point at the red rows. Key idea: equivalence violated and the VMM never noticed."],
-      ["11. Full virtualization: binary translation", "The four-box flow: kernel block -> translator -> translation cache -> run natively. 'popf becomes call vmm_popf - no trap needed.' Trade-offs: no CPU support needed, but complex and with overhead."],
-      ["12. Shadow page tables", "GVA -> GPA -> HPA; the VMM collapses it into one shadow table loaded into the MMU. Cheap TLB misses, expensive page-table writes and process switches. Hand-over: 'What if we change the guest, or the CPU? [Member 3].'"],
+      ["11. Full virtualization: binary translation", "Top strip: block -> translator -> cache -> run natively. Then read the code table: ordinary instructions are copied as-is; popf becomes call vmm_popf, cli becomes a write to the virtual IF, mov cr3 becomes a VMM call that swaps shadow tables (highlighted rows). Trade-offs card: no CPU support needed, but complex and with overhead. Key idea: only kernel code is translated, once, then cached."],
+      ["12. Shadow page tables", "GVA -> GPA -> HPA; the VMM keeps one shadow table GVA -> HPA for the real MMU. Walk the 3-step strip: guest writes a page-table entry -> the page is write-protected so it traps -> the VMM updates the shadow table and resumes. Cheap TLB misses, expensive page-table writes and process switches. Hand-over: 'What if we change the guest, or the CPU? [Member 3].'"],
     ],
     demo: "Know demo step 2 (popf) by heart: the table shows GDTR_seen = 0xffff80000000 instead of 0x1000 (host leak) and work_with_IF=0 = 20 instead of 28 (critical sections ran with interrupts enabled); the VMM saw 70 traps but 17 instructions slipped past. In step 3, explain the BT line: correct, about 9.9x in this kernel-heavy model, with translation-cache hits and shadow page-table syncs as the main costs.",
     qa: [
@@ -93,7 +93,7 @@ module.exports.members = {
       ["IV Memory and I/O virtualization", "Nested paging and the (n+1)(m+1)-1 formula (24 references); large pages (19); ballooning and page sharing; emulated vs para-virtual vs direct-assigned I/O; IOMMU and SR-IOV."],
     ],
     slides: [
-      ["13. Para-virtualization", "Xen 2003: modify the guest. Read the code box: native 'cli' becomes a write to a shared page; 'mov cr3' becomes a hypercall. Pros: near-native, simpler VMM. Cons: modified guest, no closed-source OS."],
+      ["13. Para-virtualization", "Xen 2003: modify the guest. Left: Dom0 owns the real drivers, DomU guests run modified kernels and call Xen via hypercalls; front-end/back-end drivers talk through shared rings. Right: read the table row by row - cli becomes a shared-page write (no trap), mov cr3 one hypercall, N page-table writes one batched call, network I/O goes through the split driver. Pros: near-native, simpler VMM. Cons: modified guest, no closed-source OS."],
       ["14. Hardware-assisted virtualization", "Root vs non-root mode; guest kernel in ring 0 on its own state in the VMCS; VM entry and VM exit; exit reasons; AMD names in parentheses. 'KVM is mostly a set of exit handlers.'"],
       ["15. Instruction by instruction: BT vs PV vs VT-x", "Read the table column by column: naive T&E misses POPF/SGDT; BT translates them in-line; PV replaces them with shared-page writes and hypercalls; VT-x runs them natively and only exits on OUT and HLT (plus CR3 / PTE writes without EPT). React: switch the technique tabs and untick EPT."],
       ["16. Nested paging: EPT / NPT", "First-generation VT-x still needed shadow paging and costly exits, so BT often won (Adams & Agesen 2006). EPT/NPT: hardware walks both tables. No exits, but 24 references per TLB miss; caches, large pages and VPID hide most of it. (React: animate the walk.)"],
@@ -120,7 +120,7 @@ module.exports.members = {
       ["19. Comparison", "Read 3-4 rows, then the key message: modern hypervisors are hybrids."],
       ["20. Applications and live migration", "List the applications; explain the four pre-copy steps; ~77 ms vs 34 s. (React: move the dirty-rate slider past the bandwidth to show non-convergence.)"],
       ["21. VMs vs containers", "One sentence each; clouds run containers inside VMs."],
-      ["22. Live demo", "Switch to the terminal: python -m vdemo tour. Narrate each step in 30-40 s and link it to the member who explained the concept."],
+      ["22. Live demo", "Each card shows the real terminal output you are about to see. Switch to the terminal: python -m vdemo tour. Narrate each step in 30-40 s and point back to the slide where the concept was explained."],
       ["23. Demo results", "Backup if the demo fails. React: move the VM-exit slider to ~300 cycles to show why modern hardware assistance wins."],
       ["24. Conclusion", "Code rewritten (BT), source rewritten (PV), CPU changed (VT-x). Perspectives in one breath."],
       ["25. References and questions", "Invite questions; route technical questions to the member who owns the topic."],

@@ -126,19 +126,30 @@ export function compareAll(costs = DEFAULT_COSTS, iterations = 200) {
 // ------------------------------------------------------------------ stepper data
 /** A short, readable guest-kernel path for the interactive stepper. */
 export const STEP_PROGRAM = [
-  { asm: "mov  a, 1", op: "PLAIN" },
-  { asm: "sgdt [gdt_copy]", op: "SGDT", pv: "gdt = shared->gdt_base" },
-  { asm: "cli", op: "CLI", pv: "shared->evtchn_mask = 1" },
-  { asm: "add  a, 3        ; critical section", op: "PLAIN", cs: true },
-  { asm: "sti", op: "STI", pv: "shared->evtchn_mask = 0" },
-  { asm: "popf             ; restore IF = 0", op: "POPF", v: 0, pv: "shared->evtchn_mask = 1" },
-  { asm: "add  b, 1        ; must run masked", op: "PLAIN", cs: true },
-  { asm: "popf             ; restore IF = 1", op: "POPF", v: 1, pv: "shared->evtchn_mask = 0" },
-  { asm: "mov  cr3, 0x2000 ; switch process", op: "MOVCR3", pv: "HYPERVISOR_mmuext_op(NEW_BASEPTR)" },
-  { asm: "mov  [pte], val  ; edit page table", op: "PTWRITE", pv: "HYPERVISOR_mmu_update(batch)" },
-  { asm: "out  0x3f8, 'A'  ; serial port", op: "OUT", pv: "HYPERVISOR_console_io('A')" },
-  { asm: "hlt", op: "HLT", pv: "HYPERVISOR_sched_op(block)" },
+  { asm: "mov  a, 1", op: "PLAIN", note: "ordinary kernel work" },
+  { asm: "sgdt [gdt_copy]", op: "SGDT", pv: "gdt = shared->gdt_base", note: "read where the GDT (descriptor table) lives" },
+  { asm: "cli", op: "CLI", pv: "shared->evtchn_mask = 1", note: "disable interrupts" },
+  { asm: "add  a, 3", op: "PLAIN", cs: true, note: "critical-section work" },
+  { asm: "sti", op: "STI", pv: "shared->evtchn_mask = 0", note: "re-enable interrupts" },
+  { asm: "popf", op: "POPF", v: 0, pv: "shared->evtchn_mask = 1", note: "restore saved flags: interrupts OFF" },
+  { asm: "add  b, 1", op: "PLAIN", cs: true, note: "work that must run with interrupts off" },
+  { asm: "popf", op: "POPF", v: 1, pv: "shared->evtchn_mask = 0", note: "restore saved flags: interrupts ON" },
+  { asm: "mov  cr3, 0x2000", op: "MOVCR3", pv: "HYPERVISOR_mmuext_op()", note: "switch to another process" },
+  { asm: "mov  [pte], val", op: "PTWRITE", pv: "HYPERVISOR_mmu_update()", note: "edit a page-table entry" },
+  { asm: "out  0x3f8, 'A'", op: "OUT", pv: "HYPERVISOR_console_io()", note: "print 'A' on the serial port" },
+  { asm: "hlt", op: "HLT", pv: "HYPERVISOR_sched_op()", note: "halt until the next interrupt" },
 ];
+
+/** Why each kind of outcome matters (shown under "What just happened"). */
+export const WHY = {
+  direct: "No VMM involvement: full native speed.",
+  silent: "The VMM is never told, so the guest's view of the machine is now wrong.",
+  trap: "Correct, but every trap costs hundreds of cycles.",
+  translated: "Correct and no trap, but the VMM had to translate this code first.",
+  shared: "Just a memory write: practically free.",
+  hypercall: "One deliberate call instead of a trap; requires a modified kernel.",
+  exit: "Correct; costs a VM exit + entry (hundreds to thousands of cycles).",
+};
 
 /** What happens to each instruction under each technique. */
 export function outcome(mode, ins, ept = true) {

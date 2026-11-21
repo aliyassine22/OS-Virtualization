@@ -1,6 +1,26 @@
 # Images to generate
 
-The decks need **two** images. Everything else is a code-drawn diagram (`assets/build_diagrams.js`); do not replace the diagrams with generated images.
+The decks use **four** generated images. Everything else is a code-drawn diagram (`assets/build_diagrams.js`).
+
+| ID | Slide | Size to generate | Status |
+|---|---|---|---|
+| `hero` | 1 Title (dark) | 1450 × 2050 px (≈ 5:7) | delivered |
+| `datacenter` | 3 What is virtualization? | 1700 × 1845 px (≈ 12:13) | delivered |
+| `consolidation` | 4 Why it matters (white slide) | **1480 × 1360 px** (≈ 12:11) | to generate |
+| `future` | 24 Conclusion (dark) | **1450 × 2050 px** (≈ 5:7) | to generate |
+
+## `consolidation`: plain-English description
+- **Left half:** five or six identical dark-grey servers stacked loosely, each nearly empty. Each one shows only a tiny sliver of activity: a short, dim teal bar on its front, to suggest it's mostly idle.
+- **Centre:** a soft orange arrow pointing right.
+- **Right half:** one single server, the same style but glowing confidently. Above it float four small glass panels (the virtual machines) in dark blue, teal and orange, like the title image, joined to the server by thin light-blue lines.
+- **Background:** very light grey-white, almost white, so it blends into the white slide. Clean 3D-illustration style, soft shadows, plenty of empty margin around the edges. No text, logos or people.
+- **Idea:** many idle machines become one busy machine running many VMs.
+
+## `future`: plain-English description
+- A single glass VM panel, like those in the title image and glowing teal, standing upright inside a translucent shield shaped like a padlock. A soft orange glow comes from the keyhole.
+- Faint light-blue circuit lines spread out from the base, fading into the background. A few tiny floating particles add depth.
+- **Background:** plain dark navy that matches the slide (`#1F2A44`), getting very slightly lighter behind the shield, so the edges disappear into the slide. No text, logos or people.
+- **Idea:** the future, virtual machines protected even from the hypervisor (confidential computing).
 
 ## How to drop them in
 

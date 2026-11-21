@@ -331,10 +331,39 @@ function containers() {
   return svg(900, 340, b);
 }
 
+
+// ------------------------------------------------------------------ 10. Xen para-virtualization architecture
+function xen() {
+  let b = "";
+  const W = 600;
+  // guests
+  b += box(10, 10, 185, 150, P.indigo, null, { stroke: P.teal, sw: 3 });
+  b += text(102, 38, "Dom0", { size: 19, weight: "bold", color: P.white });
+  b += text(102, 62, "privileged guest", { size: 14, color: P.app });
+  b += text(102, 98, ["Linux + real", "device drivers"], { size: 15, color: P.white, lh: 19 });
+  b += text(102, 140, "back-end drivers", { size: 14, color: "#F2C57C", weight: "bold" });
+  [207, 404].forEach((x, i) => {
+    b += box(x, 10, 185, 150, P.indigo, null);
+    b += text(x + 92, 38, `DomU ${i + 1}`, { size: 19, weight: "bold", color: P.white });
+    b += text(x + 92, 62, "unprivileged guest", { size: 14, color: P.app });
+    b += text(x + 92, 98, ["MODIFIED", "guest kernel"], { size: 15, color: P.white, lh: 19 });
+    b += text(x + 92, 140, "front-end drivers", { size: 14, color: "#F2C57C", weight: "bold" });
+  });
+  // split-driver ring between DomU1 and Dom0
+  b += text(W / 2, 185, "shared-memory rings connect front-ends to back-ends (split drivers)", { size: 14, color: P.amber, weight: "bold" });
+  // hypercall arrows
+  [102, 299, 496].forEach((x) => { b += arrow(x, 202, x, 248, P.amber, {}); });
+  b += text(200, 226, "hypercalls", { size: 15, color: P.amber, weight: "bold" });
+  b += text(398, 226, "hypercalls", { size: 15, color: P.amber, weight: "bold" });
+  b += box(10, 252, 580, 66, P.teal, ["Xen hypervisor (ring 0)", "CPU scheduling · memory · event channels"], { size: 16, lh: 21 });
+  b += box(10, 330, 580, 50, P.hw, "Physical hardware", { size: 16 });
+  return svg(W, 392, b);
+}
+
 const DIAGRAMS = {
   fig_hypervisor_types: hypervisorTypes, fig_rings: ringsComparison, fig_popek_goldberg: popekGoldberg,
   fig_trap_emulate: trapEmulate, fig_vtx: vtx, fig_memory: memory, fig_timeline: timeline,
-  fig_io: io, fig_containers: containers,
+  fig_io: io, fig_containers: containers, fig_xen: xen,
 };
 
 (async () => {

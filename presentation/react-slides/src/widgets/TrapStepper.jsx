@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { STEP_PROGRAM, outcome } from "../sim/cpu.js";
+import { STEP_PROGRAM, WHY, outcome } from "../sim/cpu.js";
 
 const MODES = [
   ["native", "Native"], ["naive", "Naive trap-and-emulate"], ["bt", "Binary translation"],
@@ -55,7 +55,11 @@ export default function TrapStepper({ initialMode = "naive", modes }) {
   const stop = (e) => e.stopPropagation();
 
   return (
-    <div className="col grow" onKeyDown={stop}>
+    <div className="col grow" onKeyDown={stop} style={{ gap: 10 }}>
+      <p className="muted" style={{ margin: 0, fontSize: 16 }}>
+        <b style={{ color: "var(--ink)" }}>The code below is a fragment of a guest OS kernel:</b> it reads its GDT location, disables interrupts for a critical
+        section, restores saved flags, switches process, edits a page table, prints a character and halts. Step through it under each technique.
+      </p>
       <div className="toolbar">
         <div className="seg" role="group" aria-label="Virtualization technique">
           {shownModes.map(([m, label]) => (
@@ -73,45 +77,57 @@ export default function TrapStepper({ initialMode = "naive", modes }) {
 
       <div className="row grow">
         {/* instruction stream */}
-        <div className="card" style={{ width: 430, padding: 12 }}>
+        <div className="card" style={{ width: 610, padding: 10, display: "flex", flexDirection: "column" }}>
           {STEP_PROGRAM.map((ins, k) => {
             const oc = k < pc ? outcome(mode, ins, ept) : null;
             const text = mode === "pv" && ins.pv ? ins.pv : ins.asm;
             return (
               <div key={k} className={`instr ${k === pc ? "cur" : k < pc ? "done" : ""}`}>
                 <span style={{ width: 18, opacity: 0.6 }}>{k}</span>
-                <span className="grow" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{text}</span>
+                <span style={{ width: 232, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{text}</span>
+                <span className="grow note">{ins.note}</span>
                 {oc && <span className="pill" style={{ background: WHERE[oc.where][1] }}>{WHERE[oc.where][0]}</span>}
               </div>
             );
           })}
+          <div className="legend">
+            {[...new Set(Object.values(WHERE).map((w) => w.join("|")))].map((w) => {
+              const [label, color] = w.split("|");
+              return <span key={label}><i style={{ background: color }} />{label}</span>;
+            })}
+          </div>
         </div>
 
         {/* guest / VMM lanes */}
         <div className="col grow">
-          <div style={{ position: "relative", height: 160, borderRadius: 14, background: "var(--surface)" }}>
-            <div style={{ position: "absolute", left: 16, top: 12, right: 16, height: 58, borderRadius: 10, background: "#3D4F8C", color: "#fff", padding: "10px 14px" }}>
+          <div style={{ position: "relative", height: 132, borderRadius: 14, background: "var(--surface)" }}>
+            <div style={{ position: "absolute", left: 16, top: 10, right: 16, height: 48, borderRadius: 10, background: "#3D4F8C", color: "#fff", padding: "10px 14px" }}>
               <b>Guest kernel</b> <span style={{ opacity: 0.8 }}>{mode === "vtx" ? "non-root, ring 0" : mode === "native" ? "ring 0 (bare metal)" : "ring 1 (deprivileged)"}</span>
             </div>
-            <div style={{ position: "absolute", left: 16, bottom: 12, right: 16, height: 58, borderRadius: 10, background: mode === "native" ? "#4A5560" : "#0F7C80", color: "#fff", padding: "10px 14px" }}>
+            <div style={{ position: "absolute", left: 16, bottom: 10, right: 16, height: 48, borderRadius: 10, background: mode === "native" ? "#4A5560" : "#0F7C80", color: "#fff", padding: "10px 14px" }}>
               <b>{mode === "native" ? "Hardware" : mode === "vtx" ? "Hypervisor (VMX root)" : "VMM / hypervisor (ring 0)"}</b>
             </div>
             <motion.div
-              animate={{ top: inVmm ? 104 : 30, background: o?.bug ? "#C8553D" : inVmm ? "#E59A2B" : "#ffffff" }}
+              animate={{ top: inVmm ? 84 : 20, background: o?.bug ? "#C8553D" : inVmm ? "#E59A2B" : "#ffffff" }}
               transition={{ type: "spring", stiffness: 160, damping: 18 }}
               style={{ position: "absolute", right: 34, width: 190, padding: "6px 10px", borderRadius: 8, fontSize: 14, fontFamily: "IBM Plex Mono", color: inVmm || o?.bug ? "#fff" : "#1F2A44", boxShadow: "0 2px 8px rgba(0,0,0,.2)" }}>
               {pc > 0 ? STEP_PROGRAM[pc - 1].asm.split(";")[0] : "ready"}
             </motion.div>
           </div>
           <div className="card" style={{ minHeight: 64, padding: "12px 18px", borderLeft: "none", background: o?.bug ? "#fbe9e5" : "var(--surface)" }}>
-            <p style={{ fontSize: 17 }}>{o ? o.text : "Press Step or Run. Each instruction is executed under the selected technique."}</p>
+            {o ? (
+              <>
+                <p style={{ fontSize: 15.5 }}><b>What just happened: </b>{o.text}</p>
+                <p style={{ fontSize: 15.5, marginTop: 4, color: o.bug ? "#C8553D" : "var(--teal)" }}><b>Why it matters: </b>{WHY[o.where]}</p>
+              </>
+            ) : <p style={{ fontSize: 15.5 }}>Press <b>Step</b> to execute one instruction, or <b>Run</b> to play them all.</p>}
           </div>
           <table className="state-table">
             <tbody>
-              <tr><td>guest-visible IF</td><td className={`mono ${st.IF !== ref.IF ? "bad" : ""}`}>{st.IF}</td><td className="mono muted">native: {ref.IF}</td></tr>
-              <tr><td>SGDT result</td><td className={`mono ${st.gdt !== ref.gdt ? "bad" : ""}`}>{st.gdt}</td><td className="mono muted">native: {ref.gdt}</td></tr>
-              <tr><td>critical work done masked</td><td className={`mono ${st.masked !== ref.masked ? "bad" : ""}`}>{st.masked}</td><td className="mono muted">native: {ref.masked}</td></tr>
-              <tr><td>transitions into VMM</td><td className="mono">{st.vmm}</td><td className="mono muted">fewer is faster</td></tr>
+              <tr><td>Interrupts enabled? (IF flag)</td><td className={`mono ${st.IF !== ref.IF ? "bad" : ""}`}>{st.IF}</td><td className="mono muted">native: {ref.IF}</td></tr>
+              <tr><td>GDT address the guest sees</td><td className={`mono ${st.gdt !== ref.gdt ? "bad" : ""}`}>{st.gdt}</td><td className="mono muted">native: {ref.gdt}</td></tr>
+              <tr><td>Critical work done with interrupts off</td><td className={`mono ${st.masked !== ref.masked ? "bad" : ""}`}>{st.masked}</td><td className="mono muted">native: {ref.masked}</td></tr>
+              <tr><td>Times control passed to the VMM</td><td className="mono">{st.vmm}</td><td className="mono muted">fewer = faster</td></tr>
             </tbody>
           </table>
         </div>
