@@ -36,6 +36,8 @@ pres.title = `${team.title}: ${team.subtitle}`;
 pres.author = team.members.map((m) => m.name).join(", ");
 pres.subject = team.course;
 const C = pres.SchemeColor;
+// outcome colours (text, tint) for the instruction tables
+const OUTC = { bug: ["C8553D", "FBE9E5"], trap: ["9A5F10", "FDF1DF"], ok: ["2E7D4F", "E6F3EC"], tr: ["3D4F8C", "E8EBF5"], pv: ["0F7C80", "E3F2F2"] };
 
 // ------------------------------------------------------------------ layouts
 pres.defineSlideMaster({
@@ -99,7 +101,7 @@ function card(slide, x, y, w, h, title, body, color, o = {}) {
   slide.addText(title, { x: tx, y: y + 0.12, w: w - (tx - x) - 0.12, h: 0.5, fontSize: o.titleSize || 15, bold: true, color, valign: "middle", margin: 0, isTextBox: true });
   if (body) {
     const items = Array.isArray(body) ? body : [body];
-    slide.addText(items.map((t, i) => ({ text: t, options: { bullet: Array.isArray(body) ? { indent: 12 } : false, breakLine: i < items.length - 1, paraSpaceAfter: 3 } })),
+    slide.addText(items.map((t, i) => ({ text: t, options: { bullet: Array.isArray(body) && !o.noBullet ? { indent: 12 } : false, breakLine: i < items.length - 1, paraSpaceAfter: o.paraSpace ?? 3 } })),
       { x: x + 0.18, y: y + 0.66, w: w - 0.32, h: h - 0.78, fontSize: o.bodySize || 12.5, color: HEX.dk1, valign: "top", margin: 0, isTextBox: true });
   }
 }
@@ -126,7 +128,7 @@ pres.addSection({ title: SEC[0] });
   const s = pres.addSlide({ masterName: "DARK", sectionTitle: SEC[0] });
   s.addText(team.title, { placeholder: "title" });
   s.addText(team.subtitle, { placeholder: "body" });
-  s.addText(team.members.map((m) => m.name).join("   |   "), { x: 0.6, y: 4.15, w: 5.8, h: 0.35, fontSize: 13, color: "FFFFFF", margin: 0, isTextBox: true });
+  s.addText(team.members.map((m) => m.name).join("   ·   "), { x: 0.6, y: 4.15, w: 5.8, h: 0.35, fontSize: 13, color: "FFFFFF", margin: 0, isTextBox: true });
   s.addText(`${team.course}  -  ${team.university}  -  ${team.date}`, { x: 0.6, y: 4.5, w: 5.8, h: 0.3, fontSize: 11, color: "8FA3C7", margin: 0, isTextBox: true });
   placeholder(s, "hero", 6.6, 0.75, 2.9, 4.1, "Abstract illustration: one physical server splitting into several glowing, isolated virtual machines", true);
 }
@@ -134,8 +136,8 @@ pres.addSection({ title: SEC[0] });
   const s = content(SEC[0], "Outline");
   const parts = [
     ["Background", ["What and why", "History", "Hypervisor types"], HEX.dk2],
-    ["CPU virtualization", ["Popek-Goldberg", "Trap-and-emulate", "The x86 problem", "Full virtualization"], HEX.accent1],
-    ["Modern techniques", ["Para-virtualization", "VT-x / AMD-V", "EPT / NPT", "I/O virtualization"], HEX.accent2],
+    ["CPU theory", ["Popek-Goldberg", "Trap-and-emulate", "The x86 problem"], HEX.accent1],
+    ["Techniques", ["Full virtualization", "Para-virtualization", "VT-x / AMD-V", "EPT / NPT", "I/O virtualization"], HEX.accent2],
     ["In practice", ["Comparison", "Applications & migration", "Live demo", "Conclusion"], HEX.accent4],
   ];
   parts.forEach(([t, items, c], i) => card(s, 0.5 + i * 2.28, 1.25, 2.12, 3.2, t, items, c, { num: i + 1, bodySize: 12.5 }));
@@ -143,10 +145,10 @@ pres.addSection({ title: SEC[0] });
 }
 {
   const s = content(SEC[0], "What is virtualization?");
-  card(s, 0.5, 1.2, 5.3, 1.0, "Virtual machine (VM)", "An isolated environment running a complete OS, as if on dedicated hardware.", HEX.dk2, { num: 1 });
-  card(s, 0.5, 2.35, 5.3, 1.0, "Hypervisor / VMM", "The layer that creates VMs and multiplexes CPU, memory and I/O among them.", HEX.accent1, { num: 2 });
-  card(s, 0.5, 3.5, 5.3, 1.0, "Isolation and efficiency", "A fault or attack in one VM must not affect the others or the host.", HEX.accent2, { num: 3 });
-  placeholder(s, "datacenter", 6.1, 1.2, 3.4, 3.3, "Modern data-center aisle with server racks (photo-style)");
+  card(s, 0.5, 1.15, 5.3, 1.15, "Virtual machine (VM)", "An isolated environment running a complete OS, as if on dedicated hardware.", HEX.dk2, { num: 1 });
+  card(s, 0.5, 2.42, 5.3, 1.15, "Hypervisor / VMM", "The layer that creates VMs and multiplexes CPU, memory and I/O among them.", HEX.accent1, { num: 2 });
+  card(s, 0.5, 3.69, 5.3, 1.15, "Isolation and efficiency", "A fault or attack in one VM must not affect the others or the host.", HEX.accent2, { num: 3 });
+  placeholder(s, "datacenter", 6.1, 1.15, 3.4, 3.69, "Modern data-center aisle with server racks (photo-style)");
 }
 {
   const s = content(SEC[0], "Why it matters");
@@ -177,27 +179,50 @@ pres.addSection({ title: SEC[0] });
 pres.addSection({ title: SEC[1] });
 {
   const s = content(SEC[1], "What must a hypervisor virtualize?");
+  s.addText("Three resources to virtualize", { x: 0.5, y: 1.15, w: 3.6, h: 0.4, fontSize: 15, bold: true, color: HEX.dk1, margin: 0, isTextBox: true });
   ["CPU", "Memory", "I/O devices"].forEach((t, i) => {
     const d = ["privileged state and instructions", "address translation, page tables", "devices, interrupts, DMA"][i];
-    card(s, 0.5, 1.2 + i * 1.12, 3.4, 0.98, t, d, [HEX.dk2, HEX.accent1, HEX.accent5][i], { titleSize: 16 });
+    card(s, 0.5, 1.62 + i * 1.07, 3.6, 0.95, t, d, [HEX.dk2, HEX.accent1, HEX.accent5][i], { titleSize: 16 });
   });
   s.addText("Popek & Goldberg (1974): a VMM must provide", { x: 4.3, y: 1.15, w: 5.2, h: 0.4, fontSize: 15, bold: true, color: HEX.dk1, margin: 0, isTextBox: true });
-  [["Equivalence", "a program behaves as on bare hardware"], ["Resource control", "the VMM is always in charge"], ["Efficiency", "most instructions run natively, no VMM"]].forEach(([t, d], i) => {
-    card(s, 4.3, 1.62 + i * 0.95, 5.2, 0.82, t, null, HEX.accent1, { num: i + 1, titleSize: 15 });
-    s.addText(d, { x: 6.55, y: 1.62 + i * 0.95, w: 2.85, h: 0.82, fontSize: 12.5, color: HEX.dk1, valign: "middle", margin: 0, isTextBox: true });
+  [["Equivalence", "a program behaves exactly as on bare hardware"], ["Resource control", "the VMM is always in charge of the resources"], ["Efficiency", "most instructions run natively, without the VMM"]].forEach(([t, d], i) => {
+    card(s, 4.3, 1.62 + i * 1.07, 5.2, 0.95, t, null, HEX.accent1, { num: i + 1, titleSize: 15 });
+    s.addText(d, { x: 4.98, y: 1.62 + i * 1.07 + 0.55, w: 4.4, h: 0.3, fontSize: 12.5, color: HEX.dk1, valign: "top", margin: 0, isTextBox: true });
   });
 }
 {
   const s = content(SEC[1], "Trap-and-emulate");
   centeredImage(s, "fig_trap_emulate", 1.1, 8.8, 1.85, "Trap and emulate flow");
-  card(s, 0.5, 3.1, 4.4, 1.45, "Privileged instruction", "Traps if executed outside ring 0 (e.g. CLI, HLT, MOV CR3).", HEX.accent1, { titleSize: 15 });
-  card(s, 5.1, 3.1, 4.4, 1.45, "Sensitive instruction", "Reads or changes privileged machine state (e.g. interrupt flag, page tables).", HEX.dk2, { titleSize: 15 });
-  takeaway(s, "Virtualizable  <=>  sensitive instructions are a subset of privileged instructions.");
+  card(s, 0.5, 3.1, 4.4, 1.45, "Privileged instruction", "Traps if executed outside ring 0 (CLI, HLT, MOV CR3, OUT).", HEX.accent1, { titleSize: 15 });
+  card(s, 5.1, 3.1, 4.4, 1.45, "Sensitive instruction", "Reads or changes privileged machine state (interrupt flag, page tables, descriptor tables).", HEX.dk2, { titleSize: 15 });
+  takeaway(s, "Virtualizable  \u21D4  every sensitive instruction is also privileged.");
 }
 {
   const s = content(SEC[1], "The x86 problem");
   centeredImage(s, "fig_popek_goldberg", 1.05, 8.2, 3.35, "Venn diagrams of sensitive and privileged instructions");
   takeaway(s, "POPF in ring 1 silently drops the IF bit: no trap, wrong behaviour. Three fixes follow.");
+}
+{
+  const s = content(SEC[1], "See it fail: naive trap-and-emulate");
+  const cell = (t, kind, bold) => ({ text: t, options: { color: OUTC[kind][0], fill: { color: OUTC[kind][1] }, bold: !!bold } });
+  const H = (t) => ({ text: t, options: { bold: true, color: "FFFFFF", fill: { color: HEX.dk1 } } });
+  const code = (t) => ({ text: t, options: { fontFace: "Courier New", bold: true, color: HEX.dk1, fill: { color: HEX.lt2 } } });
+  const rows = [
+    [H("Guest instruction"), H("What the naive VMM sees"), H("Effect on the guest")],
+    [code("sgdt [gdt_copy]"), cell("no trap (sensitive, unprivileged)", "bug", true), cell("reads the HOST's GDT base", "bug")],
+    [code("cli / sti"), cell("trap \u2192 emulated", "trap"), cell("correct", "ok")],
+    [code("popf  ; IF = 0"), cell("no trap (sensitive, unprivileged)", "bug", true), cell("IF stays 1: critical section runs unmasked", "bug")],
+    [code("mov cr3, PTE write"), cell("trap \u2192 emulated + shadow sync", "trap"), cell("correct, but expensive", "ok")],
+    [code("out 0x3f8 / hlt"), cell("trap \u2192 emulated", "trap"), cell("correct", "ok")],
+  ];
+  s.addTable(rows, { x: 0.5, y: 1.15, w: 6.1, colW: [2.05, 2.05, 2.0], fontSize: 11, fontFace: THEME.bodyFontFace, border: { type: "solid", pt: 0.75, color: "FFFFFF" }, valign: "middle", rowH: 0.5 });
+  [["SGDT result", "0x1000", "0xffff8000 (host!)"], ["Critical work done masked", "2", "1"]].forEach(([t, n, v], i) => {
+    const y = 1.15 + i * 1.6;
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 6.85, y, w: 2.65, h: 1.45, rectRadius: 0.08, fill: { color: "FBE9E5" } });
+    s.addText([{ text: t, options: { bold: true, color: HEX.dk1, fontSize: 13, breakLine: true } }, { text: `native: ${n}`, options: { color: HEX.accent5, fontSize: 12, breakLine: true } },
+      { text: `VM: ${v}`, options: { color: HEX.accent4, fontSize: 15, bold: true } }], { x: 7.0, y, w: 2.4, h: 1.45, valign: "middle", margin: 0, isTextBox: true });
+  });
+  takeaway(s, "Equivalence violated, and the VMM never noticed: POPF and SGDT never trapped.");
 }
 {
   const s = content(SEC[1], "Full virtualization: binary translation");
@@ -207,10 +232,10 @@ pres.addSection({ title: SEC[1] });
     s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 1.2, w: 1.95, h: 1.15, rectRadius: 0.08, fill: { color: [HEX.dk2, HEX.accent1, HEX.accent1, HEX.accent5][i] } });
     s.addText([{ text: t, options: { bold: true, fontSize: 14, breakLine: true } }, { text: d.replace("\n", " "), options: { fontSize: 11.5 } }],
       { x: x + 0.08, y: 1.2, w: 1.8, h: 1.15, color: "FFFFFF", align: "center", valign: "middle", margin: 0, isTextBox: true });
-    if (i < 3) s.addShape(pres.shapes.RIGHT_TRIANGLE, { x: x + 2.02, y: 1.62, w: 0.24, h: 0.3, rotate: 0, fill: { color: HEX.accent2 }, flipH: false, objectName: `arrow_${i}` });
+    if (i < 3) s.addShape(pres.shapes.RIGHT_ARROW, { x: x + 2.0, y: 1.63, w: 0.28, h: 0.3, fill: { color: HEX.accent2 }, line: { color: HEX.accent2, width: 0 }, objectName: `arrow_${i}` });
   });
-  card(s, 0.5, 2.6, 4.4, 1.95, "How it works", ["Unmodified guest OS (even Windows)", "User code: direct execution", "Kernel code: translated once, cached", "popf  ->  call vmm_popf (no trap)"], HEX.accent1);
-  card(s, 5.1, 2.6, 4.4, 1.95, "Trade-offs", ["+ Works on any x86, no CPU support needed", "- Translation overhead", "- Very complex VMM", "- Costly page-table tracing (next slide)"], HEX.accent4);
+  card(s, 0.5, 2.6, 4.4, 1.95, "How it works", ["Unmodified guest OS (even Windows)", "User code: direct execution", "Kernel code: translated once, cached", "popf  \u2192  call vmm_popf (no trap)"], HEX.accent1);
+  card(s, 5.1, 2.6, 4.4, 1.95, "Trade-offs", ["+  Works on any x86, no CPU support needed", "\u2212  Translation overhead", "\u2212  Very complex VMM", "\u2212  Costly page-table tracing (shadow paging)"], HEX.accent4, { noBullet: true });
 }
 {
   const s = content(SEC[1], "Shadow page tables");
@@ -223,19 +248,19 @@ pres.addSection({ title: SEC[1] });
   });
   s.addText("guest page table", { x: 2.45, y: y + 0.05, w: 1.4, h: 0.3, fontSize: 11, color: HEX.dk2, align: "center", margin: 0, isTextBox: true });
   s.addShape(pres.shapes.LINE, { x: 2.45, y: y + 0.43, w: 1.4, h: 0, line: { color: HEX.dk2, width: 2, endArrowType: "triangle" } });
-  s.addText("VMM's map", { x: 5.65, y: y + 0.05, w: 1.4, h: 0.3, fontSize: 11, color: HEX.accent5, align: "center", margin: 0, isTextBox: true });
+  s.addText("VMM's mapping", { x: 5.65, y: y + 0.05, w: 1.4, h: 0.3, fontSize: 11, color: HEX.accent5, align: "center", margin: 0, isTextBox: true });
   s.addShape(pres.shapes.LINE, { x: 5.65, y: y + 0.43, w: 1.4, h: 0, line: { color: HEX.accent5, width: 2, endArrowType: "triangle" } });
   s.addShape(pres.shapes.LINE, { x: 1.55, y: y + 1.05, w: 6.4, h: 0, line: { color: HEX.accent2, width: 2.5, dashType: "dash", endArrowType: "triangle" } });
-  s.addText("Shadow page table: GVA -> HPA in one step (what the real MMU uses)", { x: 1.55, y: y + 1.1, w: 6.4, h: 0.32, fontSize: 12.5, bold: true, color: HEX.accent2, align: "center", margin: 0, isTextBox: true });
+  s.addText("Shadow page table: GVA \u2192 HPA in one step, kept in sync by the VMM (guest page tables write-protected)", { x: 0.5, y: y + 1.1, w: 9.0, h: 0.32, fontSize: 12.5, bold: true, color: HEX.accent2, align: "center", margin: 0, isTextBox: true });
   card(s, 0.5, 3.0, 4.4, 1.55, "Cheap", ["TLB miss = normal 4-step walk", "Works without any CPU support"], HEX.accent6);
-  card(s, 5.1, 3.0, 4.4, 1.55, "Expensive", ["Every guest page-table write traps", "Every process switch (CR3) traps"], HEX.accent4);
+  card(s, 5.1, 3.0, 4.4, 1.55, "Expensive", ["Every guest page-table write traps", "Every process switch (CR3 load) traps"], HEX.accent4);
 }
 
 // ================================================================== Para- and hardware-assisted
 pres.addSection({ title: SEC[2] });
 {
   const s = content(SEC[2], "Para-virtualization");
-  card(s, 0.5, 1.2, 4.6, 2.35, "How it works", ["Guest kernel ported to a hypervisor API", "Hypercalls replace sensitive instructions", "Batched page-table updates (multicall)", "Event channels replace interrupts", "Split front-end / back-end drivers"], HEX.accent1);
+  card(s, 0.5, 1.2, 4.6, 2.35, "How it works", ["Guest kernel ported to a hypervisor API (Xen, 2003)", "Hypercalls replace sensitive instructions", "Interrupt masking = write to a shared page", "Batched page-table updates (multicall)", "Split front-end / back-end drivers"], HEX.accent1);
   s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 5.3, y: 1.2, w: 4.2, h: 2.35, rectRadius: 0.08, fill: { color: HEX.dk1 } });
   s.addText([
     { text: "// native kernel", options: { color: "8FA3C7", breakLine: true } },
@@ -244,10 +269,10 @@ pres.addSection({ title: SEC[2] });
     { text: " ", options: { breakLine: true } },
     { text: "// para-virtualized kernel", options: { color: "8FA3C7", breakLine: true } },
     { text: "shared->evtchn_mask = 1;", options: { color: "F2C57C", breakLine: true } },
-    { text: "HYPERVISOR_mmuext_op(NEW_BASEPTR)", options: { color: "F2C57C" } },
+    { text: "HYPERVISOR_mmuext_op(NEW_BASEPTR);", options: { color: "F2C57C" } },
   ], { x: 5.5, y: 1.3, w: 3.9, h: 2.15, fontFace: "Courier New", fontSize: 12, valign: "middle", margin: 0, isTextBox: true });
   card(s, 0.5, 3.7, 4.6, 0.95, "+ Near-native speed, simpler VMM", null, HEX.accent6, { titleSize: 14 });
-  card(s, 5.3, 3.7, 4.2, 0.95, "- Guest must be modified", null, HEX.accent4, { titleSize: 14 });
+  card(s, 5.3, 3.7, 4.2, 0.95, "\u2212 Guest kernel must be modified", null, HEX.accent4, { titleSize: 14 });
 }
 {
   const s = content(SEC[2], "Hardware-assisted virtualization");
@@ -255,9 +280,28 @@ pres.addSection({ title: SEC[2] });
   takeaway(s, "Unmodified guest in ring 0 on its own CPU state; the VMCS decides what causes a VM exit.");
 }
 {
+  const s = content(SEC[2], "Instruction by instruction: BT vs PV vs VT-x");
+  const c = (t, kind) => ({ text: t, options: { color: OUTC[kind][0], fill: { color: OUTC[kind][1] }, bold: kind === "bug", align: "center" } });
+  const H = (t) => ({ text: t, options: { bold: true, color: "FFFFFF", fill: { color: HEX.dk1 }, align: "center" } });
+  const code = (t) => ({ text: t, options: { fontFace: "Courier New", bold: true, color: HEX.dk1, fill: { color: HEX.lt2 } } });
+  const rows = [
+    [H("Instruction"), H("Naive trap-and-emulate"), H("Binary translation"), H("Para-virtualization"), H("VT-x + EPT")],
+    [code("sgdt"), c("no trap (bug)", "bug"), c("translated in-line", "tr"), c("shared page", "pv"), c("runs natively", "ok")],
+    [code("cli / sti"), c("trap", "trap"), c("translated in-line", "tr"), c("shared page", "pv"), c("runs natively", "ok")],
+    [code("popf"), c("no trap (bug)", "bug"), c("translated in-line", "tr"), c("shared page", "pv"), c("runs natively", "ok")],
+    [code("mov cr3"), c("trap", "trap"), c("call-out to VMM", "tr"), c("hypercall", "pv"), c("runs natively*", "ok")],
+    [code("PTE write"), c("trap (shadow sync)", "trap"), c("trap (shadow sync)", "trap"), c("hypercall (batched)", "pv"), c("runs natively*", "ok")],
+    [code("out"), c("trap", "trap"), c("call-out to VMM", "tr"), c("hypercall", "pv"), c("VM exit", "trap")],
+    [code("hlt"), c("trap", "trap"), c("call-out to VMM", "tr"), c("hypercall", "pv"), c("VM exit", "trap")],
+  ];
+  s.addTable(rows, { x: 0.5, y: 1.1, w: 9.0, colW: [1.6, 1.85, 1.85, 1.85, 1.85], fontSize: 12, fontFace: THEME.bodyFontFace, border: { type: "solid", pt: 0.75, color: "FFFFFF" }, valign: "middle", rowH: 0.4 });
+  s.addText("* without EPT (first-generation VT-x): VM exit + shadow page-table sync", { x: 0.5, y: 4.37, w: 9.0, h: 0.28, fontSize: 10.5, italic: true, color: HEX.accent5, margin: 0, isTextBox: true });
+  takeaway(s, "VT-x runs most sensitive instructions natively on the guest's own state; only I/O and HLT exit.");
+}
+{
   const s = content(SEC[2], "Nested paging: EPT / NPT");
   centeredImage(s, "fig_memory", 1.05, 8.6, 3.6, "Nested paging and 2D page walk");
-  takeaway(s, "No page-table exits; a TLB miss costs (4+1)(4+1) - 1 = 24 references instead of 4.");
+  takeaway(s, "No page-table exits, but a TLB miss costs up to (4+1)(4+1) \u2212 1 = 24 references instead of 4.");
 }
 {
   const s = content(SEC[2], "Virtualizing I/O");
@@ -277,20 +321,21 @@ pres.addSection({ title: SEC[3] });
   const hdr = (t) => ({ text: t, options: { bold: true, color: "FFFFFF", fill: { color: HEX.dk1 }, align: "center" } });
   const rowLbl = (t) => ({ text: t, options: { bold: true, color: HEX.dk1, fill: { color: HEX.lt2 } } });
   const rows = [
-    [hdr(""), hdr("Full (binary translation)"), hdr("Para-virtualization"), hdr("Hardware-assisted")],
+    [hdr(""), hdr("Full (BT)"), hdr("Para-virtualization"), hdr("Hardware-assisted")],
     [rowLbl("Guest OS"), "Unmodified", "Modified kernel", "Unmodified"],
     [rowLbl("Sensitive instructions"), "Translated in software", "Hypercalls", "Run on guest state / VM exit"],
+    [rowLbl("Guest kernel ring"), "1 (deprivileged)", "1 (deprivileged)", "0 (non-root)"],
     [rowLbl("Memory"), "Shadow page tables", "Validated guest PTs", "EPT / NPT"],
-    [rowLbl("Performance"), "Good, costly when kernel-heavy", "Near native", "Near native (2nd gen.)"],
+    [rowLbl("Performance"), "Good; costly when kernel-heavy", "Near native", "Near native (2nd gen.)"],
     [rowLbl("VMM complexity"), "Very high", "Moderate", "Lowest"],
     [rowLbl("Examples"), "VMware (early), VirtualBox", "Xen PV, virtio", "KVM, Hyper-V, ESXi"],
   ];
-  s.addTable(rows, { x: 0.5, y: 1.15, w: 9.0, colW: [1.9, 2.4, 2.2, 2.5], fontSize: 12, color: HEX.dk1, border: { type: "solid", pt: 0.75, color: "C9D3DD" }, valign: "middle", rowH: 0.45, fontFace: THEME.bodyFontFace });
+  s.addTable(rows, { x: 0.5, y: 1.15, w: 9.0, colW: [1.9, 2.4, 2.2, 2.5], fontSize: 12, color: HEX.dk1, border: { type: "solid", pt: 0.75, color: "C9D3DD" }, valign: "middle", rowH: 0.42, fontFace: THEME.bodyFontFace });
   takeaway(s, "Modern hypervisors are hybrids: hardware-assisted CPU and memory + para-virtual I/O.");
 }
 {
   const s = content(SEC[3], "Applications and live migration");
-  card(s, 0.5, 1.15, 4.1, 3.45, "Where virtualization is used", ["Cloud computing (IaaS): VMs as the unit of rent", "Data centers: consolidation, elasticity", "Development and testing: snapshots, sandboxes", "Security: isolation of tenants", "Disaster recovery and high availability"], HEX.dk2);
+  card(s, 0.5, 1.15, 4.1, 3.45, "Where virtualization is used", ["Cloud (IaaS): VMs as the unit of rent", "Data centers: consolidation, elasticity", "Development and testing: snapshots, sandboxes", "Security: isolation of tenants", "Disaster recovery and high availability"], HEX.dk2, { bodySize: 14, paraSpace: 10 });
   const steps = ["Copy ALL memory while the VM runs", "Re-send pages dirtied meanwhile", "Repeat until the dirty set is small", "Pause, copy the rest + CPU state, resume on target"];
   s.addText("Live migration (pre-copy)", { x: 4.85, y: 1.15, w: 4.6, h: 0.4, fontSize: 16, bold: true, color: HEX.accent1, margin: 0, isTextBox: true });
   steps.forEach((t, i) => {
@@ -320,8 +365,8 @@ pres.addSection({ title: SEC[3] });
   });
   s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 0.5, y: 3.85, w: 9.0, h: 0.75, rectRadius: 0.08, fill: { color: HEX.dk1 } });
   s.addText([{ text: "$ ", options: { color: "8FA3C7" } }, { text: "cd demo && python -m vdemo tour", options: { color: "F2C57C", bold: true } },
-    { text: "     # or: popf | cpu | memory | kvm", options: { color: "8FA3C7" } }],
-    { x: 0.7, y: 3.85, w: 8.6, h: 0.75, fontFace: "Courier New", fontSize: 14, valign: "middle", margin: 0, isTextBox: true });
+    { text: "   # or: check | popf | cpu | memory | migrate | kvm", options: { color: "8FA3C7" } }],
+    { x: 0.7, y: 3.85, w: 8.6, h: 0.75, fontFace: "Courier New", fontSize: 11.5, valign: "middle", margin: 0, isTextBox: true });
 }
 {
   const s = content(SEC[3], "Demo results");
@@ -336,7 +381,7 @@ pres.addSection({ title: SEC[3] });
     catAxisOrientation: "maxMin", catAxisLabelFontFace: "+mn-lt", valAxisLabelFontFace: "+mn-lt", titleFontFace: "+mn-lt", dataLabelFontFace: "+mn-lt",
   });
   s.addText("* incorrect: equivalence violated", { x: 0.5, y: 4.62, w: 5.8, h: 0.3, fontSize: 10, italic: true, color: HEX.accent4, margin: 0, isTextBox: true });
-  [["4 -> 24", "memory references per TLB miss (native -> nested)", HEX.accent1], ["77 ms", "live-migration downtime vs 34 s stop-and-copy", HEX.accent4], ["25 exits", "real KVM guest printing 24 chars + HLT", HEX.dk2]].forEach(([n, d, c], i) => {
+  [["4 \u2192 24", "memory references per TLB miss (native \u2192 nested)", HEX.accent1], ["77 ms", "live-migration downtime vs 34 s stop-and-copy", HEX.accent4], ["25 exits", "real KVM guest printing 24 chars + HLT", HEX.dk2]].forEach(([n, d, c], i) => {
     const y = 1.1 + i * 1.22;
     s.addText(n, { x: 6.6, y, w: 2.9, h: 0.6, fontSize: 30, bold: true, color: c, margin: 0, isTextBox: true });
     s.addText(d, { x: 6.6, y: y + 0.6, w: 2.9, h: 0.5, fontSize: 12, color: HEX.accent5, margin: 0, valign: "top", isTextBox: true });
@@ -345,14 +390,14 @@ pres.addSection({ title: SEC[3] });
 {
   const s = pres.addSlide({ masterName: "DARK", sectionTitle: SEC[3] });
   s.addText("Conclusion", { placeholder: "title" });
-  s.addText("One problem - sensitive instructions that do not trap - and three solutions that now coexist.", { placeholder: "body" });
+  s.addText("One problem: sensitive instructions that do not trap. Three solutions that now coexist:", { placeholder: "body" });
   const pers = [["Confidential VMs", "AMD SEV-SNP, Intel TDX encrypt guest memory, even from the hypervisor"], ["MicroVMs", "Firecracker: VM isolation at container speed"], ["Nested virtualization", "hypervisors inside VMs"], ["Beyond x86", "ARM EL2, RISC-V H-extension"]];
   s.addText("Perspectives", { x: 6.5, y: 0.6, w: 3.0, h: 0.4, fontSize: 16, bold: true, color: "F2C57C", margin: 0, isTextBox: true });
   pers.forEach(([t, d], i) => {
     s.addText([{ text: t, options: { bold: true, color: "FFFFFF", fontSize: 14, breakLine: true } }, { text: d, options: { color: "CADCFC", fontSize: 11.5 } }],
       { x: 6.5, y: 1.1 + i * 0.95, w: 3.1, h: 0.85, valign: "top", margin: 0, isTextBox: true });
   });
-  s.addText(["Full virtualization rewrote the code", "Para-virtualization rewrote the source", "Hardware assistance changed the CPU"].map((t, i, a) => ({ text: t, options: { bullet: true, breakLine: i < a.length - 1 } })),
+  s.addText(["Full virtualization rewrote the code", "Para-virtualization rewrote the source", "Hardware assistance changed the CPU"].map((t, i, a) => ({ text: t, options: { bullet: { type: "number" }, breakLine: i < a.length - 1 } })),
     { x: 0.6, y: 4.0, w: 5.6, h: 1.0, fontSize: 14, color: "FFFFFF", margin: 0, isTextBox: true, paraSpaceAfter: 4 });
 }
 {

@@ -3,10 +3,10 @@
  * Shared "common core" goes into every guide; each member adds their own part.
  */
 module.exports.timing = [
-  ["M1", "0:00 - 4:30", "Introduction, background, history, hypervisor types", "PPT 1-6", "React 1-6"],
-  ["M2", "4:30 - 9:15", "Popek-Goldberg, trap-and-emulate, x86 problem, full virtualization (BT), shadow page tables", "PPT 7-11", "React 7-12"],
-  ["M3", "9:15 - 14:00", "Para-virtualization, hardware-assisted (VT-x/AMD-V), EPT/NPT, I/O virtualization", "PPT 12-15", "React 13-17"],
-  ["M4", "14:00 - 20:00", "Comparison, applications & live migration, containers, LIVE DEMO (~4 min), conclusion", "PPT 16-23", "React 18-25"],
+  ["M1", "0:00 - 4:30", "Introduction, background, history, hypervisor types", "1-6"],
+  ["M2", "4:30 - 9:15", "Popek-Goldberg, trap-and-emulate, x86 problem, full virtualization (BT), shadow page tables", "7-12"],
+  ["M3", "9:15 - 14:00", "Para-virtualization, hardware-assisted (VT-x/AMD-V), EPT/NPT, I/O virtualization", "13-17"],
+  ["M4", "14:00 - 20:00", "Comparison, applications & live migration, containers, LIVE DEMO (~4 min), conclusion", "18-25"],
 ];
 
 module.exports.common = {
@@ -47,7 +47,7 @@ module.exports.members = {
     ],
     slides: [
       ["1. Title", "Greet, present the topic and the team in one sentence. 'Our topic is how one machine can safely pretend to be many.'"],
-      ["2. Objectives and roadmap", "State the four objectives, introduce each member and their minutes. Mention there is a live demo at the end."],
+      ["2. Outline", "Walk the four parts (background, CPU theory, techniques, in practice) and announce the live demo. Introduce the team verbally: the slides carry no presenter names."],
       ["3. What is virtualization?", "Define VM, hypervisor/VMM, isolation. Stress: VMs share the same hardware but cannot see each other."],
       ["4. Why it matters", "Consolidation, isolation, flexibility (VMs are files), resilience (live migration). Name the users: cloud, data centers, developers, disaster recovery."],
       ["5. 60 years of virtualization", "Walk the timeline quickly (about 45 s): mainframes -> Popek & Goldberg -> x86 'impossible' -> VMware -> Xen -> VT-x/AMD-V -> KVM -> containers, microVMs, confidential VMs."],
@@ -72,9 +72,10 @@ module.exports.members = {
     slides: [
       ["7. What must a hypervisor virtualize?", "CPU, memory, I/O. Then the three Popek-Goldberg properties: equivalence, resource control, efficiency. Efficiency is what makes it virtualization rather than emulation."],
       ["8. Trap-and-emulate", "Define privileged and sensitive. Walk the CLI example: guest in ring 1 -> trap -> VMM updates the virtual interrupt flag -> guest resumes. State the theorem."],
-      ["9. The x86 problem", "17 instructions are sensitive but not privileged. POPF in ring 1 silently ignores IF; SGDT leaks the host GDT. No trap, so the VMM is blind. (React deck: run the 'See it fail' stepper.)"],
-      ["10. Full virtualization: binary translation", "The four-box flow: kernel block -> translator -> translation cache -> run natively. 'popf becomes call vmm_popf - no trap needed.' Trade-offs: no CPU support needed, but complex and with overhead."],
-      ["11. Shadow page tables", "GVA -> GPA -> HPA; the VMM collapses it into one shadow table loaded into the MMU. Cheap TLB misses, expensive page-table writes and process switches. Hand-over: 'What if we change the guest, or the CPU? [Member 3].'"],
+      ["9. The x86 problem", "17 instructions are sensitive but not privileged. POPF in ring 1 silently ignores IF; SGDT leaks the host GDT. No trap, so the VMM is blind. "],
+      ["10. See it fail: naive trap-and-emulate", "PowerPoint: read the table - CLI/STI/MOV CR3/OUT trap and are emulated correctly, but SGDT and POPF never trap, so the guest sees the host's GDT base and its critical section runs unmasked. React: click Step through the naive VMM and point at the red rows. Key idea: equivalence violated and the VMM never noticed."],
+      ["11. Full virtualization: binary translation", "The four-box flow: kernel block -> translator -> translation cache -> run natively. 'popf becomes call vmm_popf - no trap needed.' Trade-offs: no CPU support needed, but complex and with overhead."],
+      ["12. Shadow page tables", "GVA -> GPA -> HPA; the VMM collapses it into one shadow table loaded into the MMU. Cheap TLB misses, expensive page-table writes and process switches. Hand-over: 'What if we change the guest, or the CPU? [Member 3].'"],
     ],
     demo: "Know demo step 2 (popf) by heart: the table shows GDTR_seen = 0xffff80000000 instead of 0x1000 (host leak) and work_with_IF=0 = 20 instead of 28 (critical sections ran with interrupts enabled); the VMM saw 70 traps but 17 instructions slipped past. In step 3, explain the BT line: correct, about 9.9x in this kernel-heavy model, with translation-cache hits and shadow page-table syncs as the main costs.",
     qa: [
@@ -92,10 +93,11 @@ module.exports.members = {
       ["IV Memory and I/O virtualization", "Nested paging and the (n+1)(m+1)-1 formula (24 references); large pages (19); ballooning and page sharing; emulated vs para-virtual vs direct-assigned I/O; IOMMU and SR-IOV."],
     ],
     slides: [
-      ["12. Para-virtualization", "Xen 2003: modify the guest. Read the code box: native 'cli' becomes a write to a shared page; 'mov cr3' becomes a hypercall. Pros: near-native, simpler VMM. Cons: modified guest, no closed-source OS."],
-      ["13. Hardware-assisted virtualization", "Root vs non-root mode; guest kernel in ring 0 on its own state in the VMCS; VM entry and VM exit; exit reasons; AMD names in parentheses. 'KVM is mostly a set of exit handlers.' (React deck: slide 15 stepper - VT-x mode, then untick EPT.)"],
-      ["14. Nested paging: EPT / NPT", "First-generation VT-x still needed shadow paging and costly exits, so BT often won (Adams & Agesen 2006). EPT/NPT: hardware walks both tables. No exits, but 24 references per TLB miss; caches, large pages and VPID hide most of it. (React: animate the walk.)"],
-      ["15. Virtualizing I/O", "Emulated (compatible, slow), para-virtual virtio (fast, needs a driver), direct assignment with IOMMU/SR-IOV (near native, hard to migrate). Hand-over: 'So which one wins? [Member 4].'"],
+      ["13. Para-virtualization", "Xen 2003: modify the guest. Read the code box: native 'cli' becomes a write to a shared page; 'mov cr3' becomes a hypercall. Pros: near-native, simpler VMM. Cons: modified guest, no closed-source OS."],
+      ["14. Hardware-assisted virtualization", "Root vs non-root mode; guest kernel in ring 0 on its own state in the VMCS; VM entry and VM exit; exit reasons; AMD names in parentheses. 'KVM is mostly a set of exit handlers.'"],
+      ["15. Instruction by instruction: BT vs PV vs VT-x", "Read the table column by column: naive T&E misses POPF/SGDT; BT translates them in-line; PV replaces them with shared-page writes and hypercalls; VT-x runs them natively and only exits on OUT and HLT (plus CR3 / PTE writes without EPT). React: switch the technique tabs and untick EPT."],
+      ["16. Nested paging: EPT / NPT", "First-generation VT-x still needed shadow paging and costly exits, so BT often won (Adams & Agesen 2006). EPT/NPT: hardware walks both tables. No exits, but 24 references per TLB miss; caches, large pages and VPID hide most of it. (React: animate the walk.)"],
+      ["17. Virtualizing I/O", "Emulated (compatible, slow), para-virtual virtio (fast, needs a driver), direct assignment with IOMMU/SR-IOV (near native, hard to migrate). Hand-over: 'So which one wins? [Member 4].'"],
     ],
     demo: "Know demo steps 3 and 4. Step 3: para-virtualization is the fastest (~2.1x), VT-x without EPT (~14x) suffers EXCEPTION(#PF) and CR_ACCESS exits, VT-x + EPT (~3.1x) only exits on IO_INSTRUCTION and HLT. Step 4: 4 vs 24 vs 19 references; shadow paging wins only for compute-bound code. Step 6: each OUT instruction leaves non-root mode as a VM exit (KVM_EXIT_IO) handled by our Python VMM.",
     qa: [
@@ -114,16 +116,16 @@ module.exports.members = {
       ["VII Conclusion and perspectives", "Three solutions to one problem; confidential computing (SEV-SNP, TDX), microVMs/unikernels, nested virtualization, ARM EL2 and RISC-V H-extension."],
     ],
     slides: [
-      ["16. Where does the guest kernel run?", "Recap the rings figure in 20 s: ring 1 translated, ring 1 modified, ring 0 non-root."],
-      ["17. Comparison", "Read 3-4 rows, then the key message: modern hypervisors are hybrids."],
-      ["18. Applications and live migration", "List the applications; explain the four pre-copy steps; ~77 ms vs 34 s. (React: move the dirty-rate slider past the bandwidth to show non-convergence.)"],
-      ["19. VMs vs containers", "One sentence each; clouds run containers inside VMs."],
-      ["20. Live demo", "Switch to the terminal: python -m vdemo tour. Narrate each step in 30-40 s and link it to the member who explained the concept."],
-      ["21. Demo results", "Backup if the demo fails (or the React cost explorer)."],
-      ["22. Conclusion", "Code rewritten (BT), source rewritten (PV), CPU changed (VT-x). Perspectives in one breath."],
-      ["23. References and questions", "Invite questions; route technical questions to the member who owns the topic."],
+      ["18. Where does the guest kernel run?", "Recap the rings figure in 20 s: ring 1 translated, ring 1 modified, ring 0 non-root."],
+      ["19. Comparison", "Read 3-4 rows, then the key message: modern hypervisors are hybrids."],
+      ["20. Applications and live migration", "List the applications; explain the four pre-copy steps; ~77 ms vs 34 s. (React: move the dirty-rate slider past the bandwidth to show non-convergence.)"],
+      ["21. VMs vs containers", "One sentence each; clouds run containers inside VMs."],
+      ["22. Live demo", "Switch to the terminal: python -m vdemo tour. Narrate each step in 30-40 s and link it to the member who explained the concept."],
+      ["23. Demo results", "Backup if the demo fails. React: move the VM-exit slider to ~300 cycles to show why modern hardware assistance wins."],
+      ["24. Conclusion", "Code rewritten (BT), source rewritten (PV), CPU changed (VT-x). Perspectives in one breath."],
+      ["25. References and questions", "Invite questions; route technical questions to the member who owns the topic."],
     ],
-    demo: "You DRIVE the demo. Rehearse it twice on the presentation laptop. Before the talk: open a terminal in demo/, run python -m vdemo check, and increase the font size. During the talk run python -m vdemo tour and press Enter between steps. If /dev/kvm is missing (Windows/macOS or a VM without nested virtualization), step 6 prints a clearly labelled simulated result - say so honestly; optionally run it beforehand on a Linux machine with KVM and keep a screenshot. If anything breaks, switch to slide 21 (PowerPoint) or the cost-explorer slide (React).",
+    demo: "You DRIVE the demo. Rehearse it twice on the presentation laptop. Before the talk: open a terminal in demo/, run python -m vdemo check, and increase the font size. During the talk run python -m vdemo tour and press Enter between steps. If /dev/kvm is missing (Windows/macOS or a VM without nested virtualization), step 6 prints a clearly labelled simulated result - say so honestly; optionally run it beforehand on a Linux machine with KVM and keep a screenshot. If anything breaks, switch to slide 23 (Demo results) in either deck.",
     qa: [
       ["Are the demo numbers real measurements?", "Steps 2-5 are a simulator with an illustrative cost model chosen to reproduce the qualitative findings of the literature; step 6 is real hardware-assisted virtualization through /dev/kvm."],
       ["When does live migration fail to converge?", "When the guest dirties memory faster than the link can send it; then hypervisors throttle the vCPUs (auto-converge) or switch to post-copy."],

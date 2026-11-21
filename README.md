@@ -12,7 +12,7 @@ Course project deliverables for **Topic 2: Virtualization in Operating Systems**
 | Deliverable | Where | Open / run |
 |---|---|---|
 | **IEEE report** (5 pages) | [`report/output/`](report/output) | `IEEE_Report_Virtualization_in_OS.pdf` / `.docx` |
-| **PowerPoint deck** (23 slides) | [`presentation/powerpoint/`](presentation/powerpoint) | `Virtualization_in_OS.pptx` (PDF copy alongside) |
+| **PowerPoint deck** (25 slides, same order as the React deck) | [`presentation/powerpoint/`](presentation/powerpoint) | `Virtualization_in_OS.pptx` (PDF copy alongside) |
 | **React deck** (interactive) | [`presentation/react-slides/`](presentation/react-slides) | `npm install && npm run dev` |
 | **Demo code** | [`demo/`](demo) | `cd demo && python -m vdemo tour` |
 | **Member guides** (4 PDFs) | [`team/`](team) | `Member_1_Guide.pdf` … `Member_4_Guide.pdf` |
@@ -67,11 +67,11 @@ The images still to be generated are listed in [`assets/placeholders/IMAGE_PROMP
 | Requirement from the brief | Report | Slides | Demo |
 |---|---|---|---|
 | Definition, VMs, hypervisor/VMM, isolation | I, II-B | 3, 6 | step 1 |
-| Benefits: utilization, cost, scalability, cloud, data centers, dev/test | I, V | 4, 18 | — |
-| Disaster recovery / live migration without downtime | V | 18 | step 5 |
-| Popek–Goldberg, trap-and-emulate, x86 problem | II-C, II-D | 7–9 | step 2 |
-| **Full virtualization** (binary translation, shadow page tables) | III-A | 10–11 | step 3 |
-| **Para-virtualization** (hypercalls, Xen, virtio) | III-B | 12 | step 3 |
-| **Hardware-assisted** (Intel VT-x, AMD-V, VMCS, EPT/NPT) | III-C, IV | 13–14 | steps 3, 4, 6 |
-| Memory and I/O virtualization | IV | 11, 14, 15 | step 4 |
-| Comparison and synthesis, perspectives | III-D, VII | 16–17, 22 | — |
+| Benefits: utilization, cost, scalability, cloud, data centers, dev/test | I, V | 4, 20 | — |
+| Disaster recovery / live migration without downtime | V | 20 | step 5 |
+| Popek–Goldberg, trap-and-emulate, x86 problem | II-C, II-D | 7–10 | step 2 |
+| **Full virtualization** (binary translation, shadow page tables) | III-A | 11–12 | step 3 |
+| **Para-virtualization** (hypercalls, Xen, virtio) | III-B | 13, 15 | step 3 |
+| **Hardware-assisted** (Intel VT-x, AMD-V, VMCS, EPT/NPT) | III-C, IV | 14–16 | steps 3, 4, 6 |
+| Memory and I/O virtualization | IV | 12, 16, 17 | step 4 |
+| Comparison and synthesis, perspectives | III-D, VII | 18–19, 24 | — |

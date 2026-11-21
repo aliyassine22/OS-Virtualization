@@ -24,7 +24,9 @@ export const Card = ({ title, children, color = "var(--ink)", num, style }) => (
   </div>
 );
 
-export const List = ({ items }) => <ul>{items.map((t, i) => <li key={i}>{t}</li>)}</ul>;
+export const List = ({ items, plain }) => (
+  <ul style={plain ? { listStyle: "none", paddingLeft: 0 } : undefined}>{items.map((t, i) => <li key={i}>{t}</li>)}</ul>
+);
 
 export const Takeaway = ({ children }) => <div className="takeaway"><b>Key idea</b>{children}</div>;
 

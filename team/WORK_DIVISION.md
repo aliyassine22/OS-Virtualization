@@ -10,12 +10,12 @@ Each member has a full guide PDF in this folder (`Member_N_Guide.pdf`). Each gui
 
 ## Timing
 
-| Member | Slot | Topics | PPT slides | React slides |
-|---|---|---|---|---|
-| **M1** | 0:00 – 4:30 | Introduction, objectives, what & why, history, hypervisor types | 1–6 | 1–6 |
-| **M2** | 4:30 – 9:15 | Popek–Goldberg, trap-and-emulate, the x86 problem, full virtualization (binary translation), shadow page tables | 7–11 | 7–12 |
-| **M3** | 9:15 – 14:00 | Para-virtualization, hardware-assisted (VT-x/AMD-V, VMCS, VM exits), EPT/NPT, I/O virtualization | 12–15 | 13–17 |
-| **M4** | 14:00 – 20:00 | Comparison, applications & live migration, VMs vs containers, **live demo (~4 min)**, conclusion | 16–23 | 18–25 |
+| Member | Slot | Topics | Slides (both decks) |
+|---|---|---|---|
+| **M1** | 0:00 – 4:30 | Introduction, outline, what & why, history, hypervisor types | 1–6 |
+| **M2** | 4:30 – 9:15 | Popek–Goldberg, trap-and-emulate, the x86 problem, full virtualization (binary translation), shadow page tables | 7–12 |
+| **M3** | 9:15 – 14:00 | Para-virtualization, hardware-assisted (VT-x/AMD-V, VMCS, VM exits), EPT/NPT, I/O virtualization | 13–17 |
+| **M4** | 14:00 – 20:00 | Comparison, applications & live migration, VMs vs containers, **live demo (~4 min)**, conclusion | 18–25 |
 
 **Why M4 has 6 minutes.** You asked for at least 5 minutes of demo. M1–M3 therefore run 4.5–4.75 minutes each, and M4's slot combines about 1.5 minutes of synthesis, about 4 minutes of demo and about 0.5 minutes of conclusion.
 

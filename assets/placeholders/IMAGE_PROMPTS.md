@@ -6,7 +6,6 @@ The decorative images still to be generated are listed below. The technical diag
 |---|---|---|---|
 | `hero` | Title slide (PPT + React) | 800×1100 (portrait) | Abstract, clean illustration of one physical server splitting into several glowing, isolated translucent virtual machines; deep navy background (#1F2A44) with teal (#0F7C80) and amber (#E59A2B) light accents; no text, no logos. |
 | `datacenter` | "What is virtualization?" | 900×900 | Photo-style modern data-center aisle with server racks, cool lighting, shallow depth of field; no brand names. |
-| `cloud` | React "Why it matters" | 1600×400 (wide) | Stylised cloud made of many small cube-shaped virtual machines floating over a faint world map; flat vector style; navy/teal/amber palette; no text. |
 
 ## Where to put them
 

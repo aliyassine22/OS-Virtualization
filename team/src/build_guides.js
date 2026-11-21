@@ -50,17 +50,17 @@ function guide(n) {
   const m = team.members[n - 1];
   const g = G.members[n];
   const col = COLORS[n - 1];
-  const [, slot, topics, ppt, react] = G.timing[n - 1];
+  const [, slot, topics, slides] = G.timing[n - 1];
   const kids = [];
 
   kids.push(new Paragraph({ spacing: { after: 40 }, children: [t(`${team.title} - presenter guide`, { size: 20, color: "5F6B78" })] }));
   kids.push(new Paragraph({ spacing: { after: 60 }, children: [new TextRun({ text: `Member ${n}: ${m.name}`, font: FONT, size: 44, bold: true, color: col })] }));
   kids.push(p([t(m.role, { size: 24, italics: true, color: "1F2A44" })], { after: 200 }));
-  kids.push(table([["Time slot", "Your topics", "Slides"], [slot, topics, `${ppt}\n${react}`.replace("\n", " | ")]], [1700, 5160, 2500], col));
+  kids.push(table([["Time slot", "Your topics", "Slides"], [slot, topics, `Slides ${slides} (same numbers in both decks)`]], [1700, 5160, 2500], col));
   kids.push(p([t(g.focus, { size: 22 })], { extra: { spacing: { before: 200, after: 200 } } }));
 
   kids.push(h1("1. Your part of the presentation", col));
-  kids.push(p("Slide numbers refer to the PowerPoint deck (React deck numbers are in the table above). The decks carry no speaker notes or presenter tags: this guide is your script."));
+  kids.push(p("The PowerPoint and React decks have the same 25 slides in the same order. The decks carry no speaker notes or presenter tags: this guide is your script."));
   kids.push(table([["Slide", "What to say (talking points)"], ...g.slides], [2600, 6760], col));
 
   kids.push(h1("2. Report sections you must master", col));
@@ -82,7 +82,7 @@ function guide(n) {
   kids.push(h2("The demo in one minute (everyone)"));
   G.common.demo.forEach((d) => kids.push(bullet(d)));
   kids.push(h2("Team timing (20 minutes)"));
-  kids.push(table([["Who", "When", "Topics", "Slides (PPT | React)"], ...G.timing.map(([w, s, tp, a, b]) => [`${w} ${team.members[Number(w[1]) - 1].name}`, s, tp, `${a} | ${b}`])], [1700, 1500, 4060, 2100], "1F2A44"));
+  kids.push(table([["Who", "When", "Topics", "Slides"], ...G.timing.map(([w, s, tp, a]) => [`${w} ${team.members[Number(w[1]) - 1].name}`, s, tp, a])], [1700, 1500, 4060, 2100], "1F2A44"));
 
   kids.push(h1("6. Checklist", col));
   ["Rehearse your part aloud with a timer (target: your slot minus 15 s).", "Know your hand-over sentence to the next speaker.",

@@ -4,7 +4,7 @@ The two decks have the same storyline and colours. They contain no presenter tag
 
 ## PowerPoint: `powerpoint/Virtualization_in_OS.pptx`
 
-- 23 slides in 4 topical PowerPoint **sections** (Introduction, CPU virtualization, Para-/hardware-assisted, Comparison & demo).
+- 25 slides, identical in order and wording to the React deck, in 4 topical PowerPoint **sections** (Introduction, CPU virtualization, Para-/hardware-assisted, Comparison & demo).
 - Built by `powerpoint/build_deck.js` (pptxgenjs) from the shared theme and diagrams. Rebuild with `npm run build:deck` from the repository root.
 - `Virtualization_in_OS.pdf` is a PDF fallback.
 - Image placeholders are dashed shapes named `IMG_PLACEHOLDER_<id>`; see `assets/placeholders/IMAGE_PROMPTS.md`.
@@ -30,10 +30,10 @@ npm run build      # static site in dist/ (serve with `npm run preview` or any s
 
 | Slide | Widget |
 |---|---|
-| 10 "See it fail" | step through a guest kernel under a naive trap-and-emulate VMM; POPF/SGDT turn red |
-| 15 "Instruction by instruction" | same guest under BT, PV and VT-x (toggle EPT); token animates guest ↔ VMM |
+| 10 "See it fail" | (PowerPoint: static outcome table) step through a guest kernel under a naive trap-and-emulate VMM; POPF/SGDT turn red |
+| 15 "Instruction by instruction" | (PowerPoint: static comparison table) same guest under BT, PV and VT-x (toggle EPT); token animates guest ↔ VMM |
 | 16 "Nested paging" | animated 2-D page walk: native 4, nested 24, 2 MiB pages 19 |
-| 20 "Live migration" | sliders for RAM, bandwidth, dirty rate and working set; rounds and downtime update live |
+| 20 "Applications and live migration" | sliders for RAM, bandwidth, dirty rate and working set; rounds and downtime update live |
 | 23 "Demo results" | cost-model explorer: change the VM-exit cost and watch the ranking change |
 
 **Structure:** `src/App.jsx` (deck engine), `src/deck/slides.jsx` (all slides and notes), `src/widgets/*`, `src/sim/*` (simulation ports), `src/components/blocks.jsx` (cards, reveals, `ImageSlot`).

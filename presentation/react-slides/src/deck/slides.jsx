@@ -34,8 +34,8 @@ export const SLIDES = [
     render: () => {
       const parts = [
         ["Background", ["What and why", "History", "Hypervisor types"]],
-        ["CPU virtualization", ["Popek-Goldberg", "Trap-and-emulate", "The x86 problem", "Full virtualization"]],
-        ["Modern techniques", ["Para-virtualization", "VT-x / AMD-V", "EPT / NPT", "I/O virtualization"]],
+        ["CPU theory", ["Popek-Goldberg", "Trap-and-emulate", "The x86 problem"]],
+        ["Techniques", ["Full virtualization", "Para-virtualization", "VT-x / AMD-V", "EPT / NPT", "I/O virtualization"]],
         ["In practice", ["Comparison", "Applications & migration", "Live demo", "Conclusion"]],
       ];
       return (
@@ -57,7 +57,7 @@ export const SLIDES = [
         <div className="col grow">
           <Reveal at={1}><Card title="Virtual machine (VM)" num={1} color={C.indigo}><p>An isolated environment running a complete OS, as if on dedicated hardware.</p></Card></Reveal>
           <Reveal at={2}><Card title="Hypervisor / VMM" num={2} color={C.teal}><p>The software layer that creates VMs and multiplexes CPU, memory and I/O among them.</p></Card></Reveal>
-          <Reveal at={3}><Card title="Isolation and efficiency" num={3} color={C.amber}><p>A fault or attack in one VM must not affect the others, and VMs should run at near-native speed.</p></Card></Reveal>
+          <Reveal at={3}><Card title="Isolation and efficiency" num={3} color={C.amber}><p>A fault or attack in one VM must not affect the others or the host.</p></Card></Reveal>
         </div>
         <ImageSlot id="datacenter" desc="Modern data-center aisle with server racks" style={{ width: 420 }} />
       </div>
@@ -67,15 +67,14 @@ export const SLIDES = [
     title: "Why it matters",
     render: () => (
       <div className="body">
-        <div className="row grow">
+        <div className="row grow" style={{ flexWrap: "wrap", alignContent: "stretch" }}>
           {[["Consolidation", "Many under-used servers become one well-used host: less hardware, energy and space.", C.teal],
             ["Isolation", "Run untrusted code, several OSs and test setups side by side, safely.", C.indigo],
             ["Flexibility", "VMs are files: snapshot, clone and provision in seconds; scale elastically.", C.amber],
             ["Resilience", "Live-migrate running VMs between hosts with no visible downtime.", C.red]].map(([t, d, c]) => (
-            <Card key={t} title={t} color={c} style={{ flex: 1 }}><p>{d}</p></Card>
+            <Card key={t} title={t} color={c} style={{ flex: "1 1 45%" }}><p>{d}</p></Card>
           ))}
         </div>
-        <ImageSlot id="cloud" desc="Stylised cloud built from many small VM blocks over a world map" style={{ height: 200 }} />
         <Takeaway>Used everywhere: cloud computing, data centers, development and test, disaster recovery.</Takeaway>
       </div>
     ),
@@ -85,7 +84,7 @@ export const SLIDES = [
     render: () => (
       <div className="body">
         <Diagram name="fig_timeline" alt="Timeline of virtualization" />
-        <Takeaway>Every era answered the same question: how do we run an OS on hardware it does not own?</Takeaway>
+        <Takeaway>Each era answered the same question: how do we run an OS on hardware it does not own?</Takeaway>
       </div>
     ),
   },
@@ -104,6 +103,7 @@ export const SLIDES = [
     render: () => (
       <div className="row grow">
         <div className="col" style={{ width: 380 }}>
+          <h3 style={{ margin: 0, fontSize: 22 }}>Three resources to virtualize</h3>
           {[["CPU", "privileged state and instructions", C.indigo], ["Memory", "address translation, page tables", C.teal], ["I/O devices", "devices, interrupts, DMA", C.slate]].map(([t, d, c]) => (
             <Card key={t} title={t} color={c}><p>{d}</p></Card>
           ))}
@@ -141,7 +141,7 @@ export const SLIDES = [
   },
   {
     title: "See it fail: naive trap-and-emulate",
-    render: () => <div className="body"><TrapStepper initialMode="naive" modes={["native", "naive"]} /></div>,
+    render: () => <div className="body"><TrapStepper initialMode="naive" modes={["native", "naive"]} /><Takeaway>Equivalence violated, and the VMM never noticed: POPF and SGDT never trapped.</Takeaway></div>,
   },
   {
     title: "Full virtualization: binary translation", steps: 2,
@@ -155,9 +155,8 @@ export const SLIDES = [
           ))}
         </div>
         <div className="row grow">
-          <Reveal at={1} style={{ flex: 1 }}><Card title="How it works" color={C.teal}><List items={["Unmodified guest OS (even Windows)", "User code: direct execution", "Kernel code: translated once, cached"]} />
-            <div className="code" style={{ marginTop: 10 }}><span className="c">; guest</span>  popf   <span className="h">→</span>   <span className="h">call vmm_popf</span>  <span className="c">; no trap</span></div></Card></Reveal>
-          <Reveal at={2} style={{ flex: 1 }}><Card title="Trade-offs" color={C.red}><List items={["+ Works on any x86, no CPU support needed", "− Translation overhead", "− Very complex VMM", "− Costly page-table tracing (shadow paging)"]} /></Card></Reveal>
+          <Reveal at={1} style={{ flex: 1 }}><Card title="How it works" color={C.teal}><List items={["Unmodified guest OS (even Windows)", "User code: direct execution", "Kernel code: translated once, cached", "popf  →  call vmm_popf (no trap)"]} /></Card></Reveal>
+          <Reveal at={2} style={{ flex: 1 }}><Card title="Trade-offs" color={C.red}><List plain items={["+  Works on any x86, no CPU support needed", "−  Translation overhead", "−  Very complex VMM", "−  Costly page-table tracing (shadow paging)"]} /></Card></Reveal>
         </div>
       </div>
     ),
@@ -179,7 +178,7 @@ export const SLIDES = [
           Shadow page table: GVA → HPA in one step, kept in sync by the VMM (guest page tables write-protected)
         </div>
         <div className="row grow">
-          <Card title="Cheap" color={C.green} style={{ flex: 1 }}><List items={["TLB miss = a normal 4-step walk", "Needs no CPU support"]} /></Card>
+          <Card title="Cheap" color={C.green} style={{ flex: 1 }}><List items={["TLB miss = normal 4-step walk", "Works without any CPU support"]} /></Card>
           <Card title="Expensive" color={C.red} style={{ flex: 1 }}><List items={["Every guest page-table write traps", "Every process switch (CR3 load) traps"]} /></Card>
         </div>
       </div>
@@ -191,7 +190,7 @@ export const SLIDES = [
     render: () => (
       <div className="body">
         <div className="row grow">
-          <Card title="How it works" color={C.teal} style={{ flex: 1 }}><List items={["Kernel ported to a hypervisor API (Xen, 2003)", "Hypercalls replace sensitive instructions", "Interrupt masking = write to a shared page", "Batched page-table updates (multicall)", "Split front-end / back-end drivers"]} /></Card>
+          <Card title="How it works" color={C.teal} style={{ flex: 1 }}><List items={["Guest kernel ported to a hypervisor API (Xen, 2003)", "Hypercalls replace sensitive instructions", "Interrupt masking = write to a shared page", "Batched page-table updates (multicall)", "Split front-end / back-end drivers"]} /></Card>
           <div className="code" style={{ flex: 1 }}>
             <div className="c">// native kernel</div><div>cli</div><div>mov  cr3, eax</div><br />
             <div className="c">// para-virtualized kernel</div><div className="h">shared-&gt;evtchn_mask = 1;</div><div className="h">HYPERVISOR_mmuext_op(NEW_BASEPTR);</div>
@@ -215,11 +214,11 @@ export const SLIDES = [
   },
   {
     title: "Instruction by instruction: BT vs PV vs VT-x",
-    render: () => <div className="body"><TrapStepper initialMode="vtx" modes={["naive", "bt", "pv", "vtx"]} /></div>,
+    render: () => <div className="body"><TrapStepper initialMode="vtx" modes={["naive", "bt", "pv", "vtx"]} /><Takeaway>VT-x runs most sensitive instructions natively on the guest's own state; only I/O and HLT exit.</Takeaway></div>,
   },
   {
     title: "Nested paging: EPT / NPT",
-    render: () => <div className="body"><PageWalk /><Takeaway>No page-table exits, but a TLB miss costs up to 24 references; TLBs, walk caches, large pages and VPID hide most of it.</Takeaway></div>,
+    render: () => <div className="body"><PageWalk /><Takeaway>No page-table exits, but a TLB miss costs up to (4+1)(4+1) − 1 = 24 references instead of 4.</Takeaway></div>,
   },
   {
     title: "Virtualizing I/O",
@@ -259,8 +258,17 @@ export const SLIDES = [
     },
   },
   {
-    title: "Live migration (pre-copy)",
-    render: () => <div className="body"><MigrationSim /></div>,
+    title: "Applications and live migration",
+    render: () => (
+      <div className="body">
+        <div className="row" style={{ gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+          <b style={{ fontSize: 17, color: C.indigo }}>Where virtualization is used:</b>
+          {["Cloud (IaaS)", "Data centers", "Development and testing", "Security isolation", "Disaster recovery"].map((t) => <span key={t} className="tag" style={{ fontSize: 15 }}>{t}</span>)}
+        </div>
+        <h3 style={{ margin: 0, fontSize: 20, color: C.teal }}>Live migration (pre-copy): copy memory while running, re-send dirtied pages, short final pause</h3>
+        <MigrationSim />
+      </div>
+    ),
   },
   {
     title: "VMs vs containers",
@@ -281,15 +289,26 @@ export const SLIDES = [
     ),
   },
   {
-    title: "Demo results: explore the cost model",
-    render: () => <div className="body"><CostExplorer /></div>,
+    title: "Demo results",
+    render: () => (
+      <div className="body">
+        <CostExplorer />
+        <div className="row">
+          {[["4 → 24", "memory references per TLB miss (native → nested)", C.teal], ["77 ms", "live-migration downtime vs 34 s stop-and-copy", C.red], ["25 exits", "real KVM guest printing 24 chars + HLT", C.indigo]].map(([n, d, c]) => (
+            <div key={n} className="card" style={{ flex: 1, padding: "10px 16px", display: "flex", alignItems: "baseline", gap: 12 }}>
+              <span style={{ fontSize: 30, fontWeight: 700, color: c, whiteSpace: "nowrap" }}>{n}</span><span className="muted" style={{ fontSize: 15 }}>{d}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    ),
   },
   {
     title: "Conclusion", dark: true, steps: 1,
     render: () => (
       <div className="row grow">
         <div className="col grow" style={{ justifyContent: "center" }}>
-          <p className="lead" style={{ fontSize: 28, color: "#fff" }}>One problem: sensitive instructions that do not trap.</p>
+          <p className="lead" style={{ fontSize: 28, color: "#fff" }}>One problem: sensitive instructions that do not trap. Three solutions that now coexist:</p>
           {["Full virtualization rewrote the code", "Para-virtualization rewrote the source", "Hardware assistance changed the CPU"].map((t, i) => (
             <p key={t} style={{ fontSize: 24, margin: "6px 0", color: "#CADCFC" }}><span className="num" style={{ background: PALETTE[i + 1], marginRight: 12 }}>{i + 1}</span>{t}</p>
           ))}

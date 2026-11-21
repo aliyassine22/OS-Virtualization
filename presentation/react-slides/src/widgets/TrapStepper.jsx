@@ -89,21 +89,21 @@ export default function TrapStepper({ initialMode = "naive", modes }) {
 
         {/* guest / VMM lanes */}
         <div className="col grow">
-          <div style={{ position: "relative", height: 210, borderRadius: 14, background: "var(--surface)" }}>
-            <div style={{ position: "absolute", left: 16, top: 14, right: 16, height: 74, borderRadius: 10, background: "#3D4F8C", color: "#fff", padding: "10px 14px" }}>
+          <div style={{ position: "relative", height: 160, borderRadius: 14, background: "var(--surface)" }}>
+            <div style={{ position: "absolute", left: 16, top: 12, right: 16, height: 58, borderRadius: 10, background: "#3D4F8C", color: "#fff", padding: "10px 14px" }}>
               <b>Guest kernel</b> <span style={{ opacity: 0.8 }}>{mode === "vtx" ? "non-root, ring 0" : mode === "native" ? "ring 0 (bare metal)" : "ring 1 (deprivileged)"}</span>
             </div>
-            <div style={{ position: "absolute", left: 16, bottom: 14, right: 16, height: 74, borderRadius: 10, background: mode === "native" ? "#4A5560" : "#0F7C80", color: "#fff", padding: "10px 14px" }}>
+            <div style={{ position: "absolute", left: 16, bottom: 12, right: 16, height: 58, borderRadius: 10, background: mode === "native" ? "#4A5560" : "#0F7C80", color: "#fff", padding: "10px 14px" }}>
               <b>{mode === "native" ? "Hardware" : mode === "vtx" ? "Hypervisor (VMX root)" : "VMM / hypervisor (ring 0)"}</b>
             </div>
             <motion.div
-              animate={{ top: inVmm ? 140 : 46, background: o?.bug ? "#C8553D" : inVmm ? "#E59A2B" : "#ffffff" }}
+              animate={{ top: inVmm ? 104 : 30, background: o?.bug ? "#C8553D" : inVmm ? "#E59A2B" : "#ffffff" }}
               transition={{ type: "spring", stiffness: 160, damping: 18 }}
               style={{ position: "absolute", right: 34, width: 190, padding: "6px 10px", borderRadius: 8, fontSize: 14, fontFamily: "IBM Plex Mono", color: inVmm || o?.bug ? "#fff" : "#1F2A44", boxShadow: "0 2px 8px rgba(0,0,0,.2)" }}>
               {pc > 0 ? STEP_PROGRAM[pc - 1].asm.split(";")[0] : "ready"}
             </motion.div>
           </div>
-          <div className="card" style={{ minHeight: 84, borderLeft: "none", background: o?.bug ? "#fbe9e5" : "var(--surface)" }}>
+          <div className="card" style={{ minHeight: 64, padding: "12px 18px", borderLeft: "none", background: o?.bug ? "#fbe9e5" : "var(--surface)" }}>
             <p style={{ fontSize: 17 }}>{o ? o.text : "Press Step or Run. Each instruction is executed under the selected technique."}</p>
           </div>
           <table className="state-table">
