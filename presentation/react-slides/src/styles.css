@@ -137,3 +137,7 @@ code, .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; }
 .kenburns { animation: kenburns 22s ease-in-out infinite alternate; transform-origin: 60% 40%; }
 @keyframes kenburns { from { transform: scale(1.0); } to { transform: scale(1.08) translate(-1.5%, 1%); } }
 @media (prefers-reduced-motion: reduce) { .kenburns { animation: none !important; } }
+
+/* a loaded image replaces the dashed placeholder frame */
+.imgslot.has-img, .dark .imgslot.has-img { border: 0; padding: 0; background: transparent; }
+.imgslot.has-img img { border-radius: 16px; }

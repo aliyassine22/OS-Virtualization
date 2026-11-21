@@ -47,7 +47,7 @@ const imageFor = (id) => {
 export function ImageSlot({ id, desc, ratio, style }) {
   const src = imageFor(id);
   return (
-    <div className="imgslot" style={{ aspectRatio: ratio, alignSelf: "center", padding: src ? 0 : undefined, ...style }}>
+    <div className={`imgslot${src ? " has-img" : ""}`} style={{ aspectRatio: ratio, alignSelf: "center", ...style }}>
       {src ? (
         <img src={src} alt={desc} className="kenburns" />
       ) : (
