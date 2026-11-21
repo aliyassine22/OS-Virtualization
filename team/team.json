@@ -7,9 +7,29 @@
   "title": "Virtualization in Operating Systems",
   "subtitle": "Full, Para-, and Hardware-Assisted Virtualization",
   "members": [
-    { "id": 1, "name": "Member 1", "email": "member1@university.edu", "role": "Introduction, background and hypervisor fundamentals" },
-    { "id": 2, "name": "Member 2", "email": "member2@university.edu", "role": "CPU virtualization theory and full virtualization" },
-    { "id": 3, "name": "Member 3", "email": "member3@university.edu", "role": "Para-virtualization and hardware-assisted virtualization" },
-    { "id": 4, "name": "Member 4", "email": "member4@university.edu", "role": "Memory/I-O, applications, live demo and conclusion" }
+    {
+      "id": 1,
+      "name": "Member 1",
+      "email": "member1@university.edu",
+      "role": "Introduction, background and hypervisor fundamentals"
+    },
+    {
+      "id": 2,
+      "name": "Member 2",
+      "email": "member2@university.edu",
+      "role": "CPU virtualization theory and full virtualization"
+    },
+    {
+      "id": 3,
+      "name": "Member 3",
+      "email": "member3@university.edu",
+      "role": "Para-virtualization, hardware-assisted virtualization, memory and I/O"
+    },
+    {
+      "id": 4,
+      "name": "Member 4",
+      "email": "member4@university.edu",
+      "role": "Comparison, applications, live demo and conclusion"
+    }
   ]
 }

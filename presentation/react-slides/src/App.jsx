@@ -1,0 +1,142 @@
+import React, { useCallback, useEffect, useLayoutEffect, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { SLIDES } from "./deck/slides.jsx";
+import { team, MEMBER_COLORS } from "./deck/team.js";
+import { StepContext } from "./components/blocks.jsx";
+
+/**
+ * Deck engine.
+ *   Right / Space / PageDown : next step, then next slide     Left / PageUp : back
+ *   Home / End : first / last     N : speaker notes     O : overview     F : fullscreen
+ * The URL hash (#/7) keeps your place on reload.
+ */
+const readHash = () => {
+  const n = parseInt(window.location.hash.replace("#/", ""), 10);
+  return Number.isFinite(n) && n >= 1 && n <= SLIDES.length ? n - 1 : 0;
+};
+
+function useStageScale() {
+  const [scale, setScale] = useState(1);
+  useLayoutEffect(() => {
+    const fit = () => setScale(Math.min(window.innerWidth / 1280, window.innerHeight / 720));
+    fit();
+    window.addEventListener("resize", fit);
+    return () => window.removeEventListener("resize", fit);
+  }, []);
+  return scale;
+}
+
+export default function App() {
+  const [index, setIndex] = useState(readHash);
+  const [step, setStep] = useState(0);
+  const [dir, setDir] = useState(1);
+  const [notes, setNotes] = useState(false);
+  const [overview, setOverview] = useState(false);
+  const scale = useStageScale();
+  const reduce = useReducedMotion();
+  const slide = SLIDES[index];
+  const steps = slide.steps || 0;
+
+  const go = useCallback((i, s = 0) => {
+    const ni = Math.max(0, Math.min(SLIDES.length - 1, i));
+    setDir(ni >= index ? 1 : -1);
+    setIndex(ni);
+    setStep(s);
+    window.history.replaceState(null, "", `#/${ni + 1}`);
+  }, [index]);
+
+  const next = useCallback(() => (step < steps ? setStep(step + 1) : go(index + 1)), [step, steps, index, go]);
+  const prev = useCallback(() => (step > 0 ? setStep(step - 1) : index > 0 && go(index - 1, SLIDES[index - 1].steps || 0)), [step, index, go]);
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if (["INPUT", "SELECT", "TEXTAREA"].includes(e.target.tagName)) return;
+      const k = e.key;
+      if (["ArrowRight", "PageDown", " "].includes(k)) { e.preventDefault(); next(); }
+      else if (["ArrowLeft", "PageUp"].includes(k)) { e.preventDefault(); prev(); }
+      else if (k === "Home") go(0);
+      else if (k === "End") go(SLIDES.length - 1);
+      else if (k === "n" || k === "N") setNotes((v) => !v);
+      else if (k === "o" || k === "O" || k === "Escape") setOverview((v) => (k === "Escape" ? false : !v));
+      else if (k === "f" || k === "F") {
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+        else document.exitFullscreen?.();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [next, prev, go]);
+
+  useEffect(() => {
+    const onHash = () => { setIndex(readHash()); setStep(0); };
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+
+  const Body = slide.render;
+  const member = slide.member;
+  const variants = reduce
+    ? { enter: { opacity: 0 }, center: { opacity: 1 }, exit: { opacity: 0 } }
+    : {
+      enter: (d) => ({ opacity: 0, x: 60 * d }),
+      center: { opacity: 1, x: 0 },
+      exit: (d) => ({ opacity: 0, x: -60 * d }),
+    };
+
+  return (
+    <>
+      <div className="viewport">
+        <div className="stage" style={{ transform: `scale(${scale})` }}>
+          <AnimatePresence custom={dir} initial={false}>
+            <motion.section
+              key={index}
+              className={`slide ${slide.dark ? "dark" : ""}`}
+              custom={dir} variants={variants} initial="enter" animate="center" exit="exit"
+              transition={{ duration: 0.35, ease: [0.2, 0.7, 0.2, 1] }}
+              aria-roledescription="slide" aria-label={`${index + 1} of ${SLIDES.length}: ${slide.title}`}
+            >
+              {member && !slide.hideBadge && (
+                <div className="badge" style={{ background: MEMBER_COLORS[member - 1] }} title={team.members[member - 1].name}>
+                  M{member}<small>{team.members[member - 1].name}</small>
+                </div>
+              )}
+              {!slide.hideTitle && <h1>{slide.title}</h1>}
+              <StepContext.Provider value={step}>
+                <Body step={step} />
+              </StepContext.Provider>
+              <div className="footer">
+                <span>{team.title} · {team.course}{index === 0 ? "  ·  press O for overview & keys" : ""}</span>
+                <span>{index + 1} / {SLIDES.length}</span>
+              </div>
+              <div className="progress" aria-hidden>
+                {SLIDES.map((s, i) => (
+                  <span key={i} style={{ flex: 1, background: MEMBER_COLORS[(s.member || 1) - 1], opacity: i <= index ? 1 : 0.18 }} />
+                ))}
+              </div>
+            </motion.section>
+          </AnimatePresence>
+        </div>
+      </div>
+
+      {notes && (
+        <aside className="notes" aria-label="Speaker notes">
+          <b>{member ? `${team.members[member - 1].name} (M${member})` : ""}</b> {slide.notes}
+        </aside>
+      )}
+
+      {overview && (
+        <div className="overlay" role="dialog" aria-label="Slide overview">
+          <p style={{ color: "#CADCFC", marginTop: 0 }}>←/→ or Space: navigate · N: speaker notes · O / Esc: overview · F: fullscreen · Home/End</p>
+          <div className="grid-ov">
+            {SLIDES.map((s, i) => (
+              <button key={i} className="ov-item" aria-current={i === index} onClick={() => { go(i); setOverview(false); }}>
+                <span className="pill" style={{ background: MEMBER_COLORS[(s.member || 1) - 1] }}>M{s.member || 1}</span>
+                <b>{i + 1}. {s.title}</b>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
