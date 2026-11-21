@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { compareAll, DEFAULT_COSTS } from "../sim/cpu.js";
 
@@ -9,6 +9,8 @@ export default function CostExplorer() {
   const [vmexit, setVmexit] = useState(DEFAULT_COSTS.vmexit);
   const [trap, setTrap] = useState(DEFAULT_COSTS.trap);
   const [hyper, setHyper] = useState(DEFAULT_COSTS.hypercall);
+  const first = useRef(true);
+  useEffect(() => { first.current = false; }, []);
   const res = useMemo(() => compareAll({ ...DEFAULT_COSTS, vmexit, trap, hypercall: hyper }), [vmexit, trap, hyper]);
   const max = Math.max(...res.map((r) => r.slowdown));
   const S = ({ label, v, set, min, max: mx, note }) => (
@@ -25,7 +27,7 @@ export default function CostExplorer() {
           <div key={r.name} style={{ display: "grid", gridTemplateColumns: "190px 1fr", alignItems: "center", gap: 12 }}>
             <span style={{ fontSize: 17, fontWeight: 600 }}>{r.name}</span>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <motion.div initial={false} animate={{ width: `${(r.slowdown / max) * 78}%` }} transition={{ type: "spring", stiffness: 120, damping: 20 }}
+              <motion.div initial={{ width: 0 }} animate={{ width: `${(r.slowdown / max) * 78}%` }} transition={{ type: "spring", stiffness: 120, damping: 20, delay: first.current ? 0.35 + i * 0.08 : 0 }}
                 style={{ height: 34, borderRadius: 6, background: COLORS[i], minWidth: 6 }} />
               <span className="mono" style={{ fontSize: 16 }}>{r.slowdown.toFixed(1)}x</span>
               {!r.correct && <span className="pill" style={{ background: "#C8553D" }}>incorrect</span>}

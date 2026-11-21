@@ -40,6 +40,20 @@ npm run build      # static site in dist/ (serve with `npm run preview` or any s
 
 - **Names** are read from `team/team.json`.
 - **Diagrams** are imported from `assets/diagrams/`.
-- **Images:** drop files into `public/images/<id>.png` and they replace the placeholders.
+- **Images:** save them as `assets/images/<id>.png`. The React deck picks them up automatically, and `npm run build:deck` embeds them in the PowerPoint. Specs are in `assets/placeholders/IMAGE_PROMPTS.md`.
 
-**Design.** The deck follows Anthropic's public *frontend-design* skill (github.com/anthropics/skills). It uses a topic-specific token plan, with the palette and type roles documented at the top of `src/styles.css`. A thin progress bar shows position in the talk. Motion is used only for slide transitions and in response to what the user does in the widgets, and it respects `prefers-reduced-motion`.
+**Animation.** Every slide has entrance choreography (`src/components/motion.jsx`):
+
+- slide transitions with a blur-and-slide effect
+- titles whose words rise in one after another
+- cards, lists and table rows that lift in staggered
+- diagrams that wipe in from left to right
+- numbered badges that pop, and a light sweep across each key-idea strip
+- bars that grow and numbers that count up
+- a page walk that plays on arrival
+- a drifting ambient background on the dark slides, and a slow Ken Burns drift on photos
+- cards that lift on hover
+
+All motion is switched off when the OS requests reduced motion.
+
+**Design.** The deck follows Anthropic's public *frontend-design* skill (github.com/anthropics/skills). It uses a topic-specific token plan, with the palette and type roles documented at the top of `src/styles.css`. A thin progress bar shows position in the talk. Motion is used for entrances, the dark-slide ambience and live feedback in the widgets, and it respects `prefers-reduced-motion`.

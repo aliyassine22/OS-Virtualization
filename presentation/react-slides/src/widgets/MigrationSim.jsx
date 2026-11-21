@@ -1,6 +1,7 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { precopy } from "../sim/migration.js";
+import { CountUp } from "../components/motion.jsx";
 
 function Slider({ label, value, min, max, step, onChange, fmt }) {
   return (
@@ -18,6 +19,8 @@ export default function MigrationSim() {
   const [bw, setBw] = useState(1000);
   const [dirty, setDirty] = useState(15000);
   const [wws, setWws] = useState(256);
+  const first = useRef(true);
+  useEffect(() => { first.current = false; }, []);
   const r = useMemo(() => precopy({ memMiB: mem, bwMbps: bw, dirtyPerS: dirty, wwsMiB: wws }), [mem, bw, dirty, wws]);
   const maxPages = Math.max(...r.rounds.map((x) => x.pages));
   const H = 190, W = 560;
@@ -32,8 +35,8 @@ export default function MigrationSim() {
         <Slider label="Dirty rate" value={dirty} min={0} max={80000} step={1000} onChange={setDirty} fmt={(v) => `${(v / 1000).toFixed(0)}k pg/s`} />
         <Slider label="Writable working set" value={wws} min={64} max={1024} step={64} onChange={setWws} fmt={(v) => `${v} MiB`} />
         <div className="row" style={{ marginTop: 10 }}>
-          <div className="card grow"><div className="big" style={{ color: r.converged ? "#2E8B57" : "#C8553D" }}>{r.downtimeMs < 1000 ? `${r.downtimeMs.toFixed(0)} ms` : `${(r.downtimeMs / 1000).toFixed(1)} s`}</div><p className="muted">downtime (pre-copy)</p></div>
-          <div className="card grow"><div className="big" style={{ color: "#C8553D" }}>{(r.stopAndCopyMs / 1000).toFixed(1)} s</div><p className="muted">downtime (stop-and-copy)</p></div>
+          <div className="card grow"><div className="big" style={{ color: r.converged ? "#2E8B57" : "#C8553D" }}>{r.downtimeMs < 1000 ? <CountUp value={r.downtimeMs} suffix=" ms" /> : <CountUp value={r.downtimeMs / 1000} decimals={1} suffix=" s" />}</div><p className="muted">downtime (pre-copy)</p></div>
+          <div className="card grow"><div className="big" style={{ color: "#C8553D" }}><CountUp value={r.stopAndCopyMs / 1000} decimals={1} suffix=" s" /></div><p className="muted">downtime (stop-and-copy)</p></div>
         </div>
         <p className="muted" style={{ fontSize: 16, margin: 0 }}>
           {r.rounds.length} rounds · total {r.totalS.toFixed(1)} s · {r.sentMiB.toFixed(0)} MiB sent
@@ -48,7 +51,7 @@ export default function MigrationSim() {
             const x = 10 + i * (bw_ + 6);
             return (
               <g key={i}>
-                <motion.rect initial={false} animate={{ y: H - h, height: h }} x={x} width={bw_} rx={4} fill={b.live ? "#0F7C80" : "#C8553D"} />
+                <motion.rect initial={{ y: H, height: 0 }} animate={{ y: H - h, height: h }} transition={{ type: "spring", stiffness: 90, damping: 16, delay: first.current ? 0.5 + i * 0.09 : 0 }} x={x} width={bw_} rx={4} fill={b.live ? "#0F7C80" : "#C8553D"} />
                 <text x={x + bw_ / 2} y={H + 18} fontSize="13" textAnchor="middle" fill="#5f6b78">{b.live ? i : "stop"}</text>
               </g>
             );

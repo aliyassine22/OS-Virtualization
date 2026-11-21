@@ -5,6 +5,7 @@ import PageWalk from "../widgets/PageWalk.jsx";
 import MigrationSim from "../widgets/MigrationSim.jsx";
 import CostExplorer from "../widgets/CostExplorer.jsx";
 import { team, PALETTE } from "./team.js";
+import { CountUp } from "../components/motion.jsx";
 
 const C = { indigo: "#3D4F8C", teal: "#0F7C80", amber: "#B8741A", red: "#C8553D", slate: "#4A5560", green: "#2E8B57" };
 
@@ -25,7 +26,7 @@ export const SLIDES = [
           <p style={{ fontSize: 20, marginTop: 30, color: "#fff" }}>{team.members.map((m) => m.name).join("  ·  ")}</p>
           <p style={{ color: "#8fa3c7", fontSize: 16, marginTop: 18 }}>{team.course} · {team.university} · {team.date}</p>
         </div>
-        <ImageSlot id="hero" desc="One physical server splitting into several glowing, isolated virtual machines" style={{ width: 400 }} />
+        <ImageSlot id="hero" ratio="2.9 / 4.1" desc="One physical server splitting into several glowing, isolated virtual machines" style={{ width: 410 }} />
       </div>
     ),
   },
@@ -59,7 +60,7 @@ export const SLIDES = [
           <Reveal at={2}><Card title="Hypervisor / VMM" num={2} color={C.teal}><p>The software layer that creates VMs and multiplexes CPU, memory and I/O among them.</p></Card></Reveal>
           <Reveal at={3}><Card title="Isolation and efficiency" num={3} color={C.amber}><p>A fault or attack in one VM must not affect the others or the host.</p></Card></Reveal>
         </div>
-        <ImageSlot id="datacenter" desc="Modern data-center aisle with server racks" style={{ width: 420 }} />
+        <ImageSlot id="datacenter" ratio="3.4 / 3.69" desc="Modern data-center aisle with server racks" style={{ width: 440 }} />
       </div>
     ),
   },
@@ -294,8 +295,8 @@ export const SLIDES = [
       <div className="body">
         <CostExplorer />
         <div className="row">
-          {[["4 → 24", "memory references per TLB miss (native → nested)", C.teal], ["77 ms", "live-migration downtime vs 34 s stop-and-copy", C.red], ["25 exits", "real KVM guest printing 24 chars + HLT", C.indigo]].map(([n, d, c]) => (
-            <div key={n} className="card" style={{ flex: 1, padding: "10px 16px", display: "flex", alignItems: "baseline", gap: 12 }}>
+          {[[<>4 → <CountUp value={24} /></>, "memory references per TLB miss (native → nested)", C.teal], [<CountUp value={77} suffix=" ms" />, "live-migration downtime vs 34 s stop-and-copy", C.red], [<CountUp value={25} suffix=" exits" />, "real KVM guest printing 24 chars + HLT", C.indigo]].map(([n, d, c], k) => (
+            <div key={k} className="card" style={{ flex: 1, padding: "10px 16px", display: "flex", alignItems: "baseline", gap: 12 }}>
               <span style={{ fontSize: 30, fontWeight: 700, color: c, whiteSpace: "nowrap" }}>{n}</span><span className="muted" style={{ fontSize: 15 }}>{d}</span>
             </div>
           ))}

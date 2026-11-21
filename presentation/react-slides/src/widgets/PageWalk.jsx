@@ -14,6 +14,11 @@ export default function PageWalk() {
   const total = mode === "native" ? 4 : rows * cols - 1;
 
   useEffect(() => {
+    const t = setTimeout(() => setPlaying(true), 900);   // play once when the slide appears
+    return () => clearTimeout(t);
+  }, []);
+
+  useEffect(() => {
     if (!playing) return undefined;
     if (n >= total) { setPlaying(false); return undefined; }
     const t = setTimeout(() => setN((v) => v + 1), 220);

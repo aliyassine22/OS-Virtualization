@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext } from "react";
 import { motion } from "framer-motion";
 import { diagram } from "../deck/team.js";
 
@@ -35,19 +35,23 @@ export const Diagram = ({ name, alt, style }) => (
 );
 
 /**
- * Image placeholder. Drop public/images/<id>.png (or .jpg/.webp) and it replaces
+ * Image placeholder. Drop assets/images/<id>.png (or .jpg/.webp) and it replaces
  * the dashed box automatically. Prompts: assets/placeholders/IMAGE_PROMPTS.md
  */
-export function ImageSlot({ id, desc, style }) {
-  const exts = ["png", "jpg", "webp"];
-  const [i, setI] = useState(0);
-  const failed = i >= exts.length;
+const IMAGES = import.meta.glob("@repo/assets/images/*.{png,jpg,jpeg,webp}", { eager: true, query: "?url", import: "default" });
+const imageFor = (id) => {
+  const key = Object.keys(IMAGES).find((k) => new RegExp(`/${id}\\.(png|jpe?g|webp)$`).test(k));
+  return key ? IMAGES[key] : null;
+};
+
+export function ImageSlot({ id, desc, ratio, style }) {
+  const src = imageFor(id);
   return (
-    <div className="imgslot" style={style}>
-      {!failed ? (
-        <img src={`./images/${id}.${exts[i]}`} alt={desc} onError={() => setI(i + 1)} />
+    <div className="imgslot" style={{ aspectRatio: ratio, alignSelf: "center", padding: src ? 0 : undefined, ...style }}>
+      {src ? (
+        <img src={src} alt={desc} className="kenburns" />
       ) : (
-        <div><b>IMAGE PLACEHOLDER · {id}</b>{desc}<br /><span className="mono" style={{ fontSize: 12 }}>public/images/{id}.png</span></div>
+        <div><b>IMAGE PLACEHOLDER · {id}</b>{desc}<br /><span className="mono" style={{ fontSize: 12 }}>assets/images/{id}.png</span></div>
       )}
     </div>
   );

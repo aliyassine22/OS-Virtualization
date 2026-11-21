@@ -78,6 +78,12 @@ function centeredImage(slide, name, y, maxW, maxH, alt) {
   return { y, h };
 }
 function placeholder(slide, id, x, y, w, h, desc, dark = false) {
+  // If the generated image exists in assets/images/<id>.(png|jpg|jpeg|webp), use it (cropped to fill the slot).
+  const img = ["png", "jpg", "jpeg", "webp"].map((e) => path.join(ROOT, "assets", "images", `${id}.${e}`)).find((f) => fs.existsSync(f));
+  if (img) {
+    slide.addImage({ path: img, x, y, w, h, sizing: { type: "cover", w, h }, altText: desc, objectName: `IMG_${id}` });
+    return;
+  }
   slide.addShape(pres.shapes.ROUNDED_RECTANGLE, {
     x, y, w, h, rectRadius: 0.12, objectName: `IMG_PLACEHOLDER_${id}`,
     fill: { color: dark ? "2B3A5C" : HEX.lt2 }, line: { color: dark ? "8FA3C7" : "9AA7B4", width: 1.25, dashType: "dash" },

@@ -3,6 +3,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { SLIDES } from "./deck/slides.jsx";
 import { team } from "./deck/team.js";
 import { StepContext } from "./components/blocks.jsx";
+import { AmbientBackground, AnimatedTitle, useEntrance } from "./components/motion.jsx";
 
 /**
  * Deck engine.
@@ -75,9 +76,9 @@ export default function App() {
   const variants = reduce
     ? { enter: { opacity: 0 }, center: { opacity: 1 }, exit: { opacity: 0 } }
     : {
-      enter: (d) => ({ opacity: 0, x: 60 * d }),
-      center: { opacity: 1, x: 0 },
-      exit: (d) => ({ opacity: 0, x: -60 * d }),
+      enter: (d) => ({ opacity: 0, x: 90 * d, scale: 0.985, filter: "blur(6px)" }),
+      center: { opacity: 1, x: 0, scale: 1, filter: "blur(0px)" },
+      exit: (d) => ({ opacity: 0, x: -90 * d, scale: 0.985, filter: "blur(6px)" }),
     };
 
   return (
@@ -85,14 +86,16 @@ export default function App() {
       <div className="viewport">
         <div className="stage" style={{ transform: `scale(${scale})` }}>
           <AnimatePresence custom={dir} initial={false}>
-            <motion.section
+            <SlideFrame
               key={index}
+              index={index}
               className={`slide ${slide.dark ? "dark" : ""}`}
               custom={dir} variants={variants} initial="enter" animate="center" exit="exit"
-              transition={{ duration: 0.35, ease: [0.2, 0.7, 0.2, 1] }}
+              transition={{ duration: 0.5, ease: [0.2, 0.7, 0.2, 1] }}
               aria-roledescription="slide" aria-label={`${index + 1} of ${SLIDES.length}: ${slide.title}`}
             >
-              {!slide.hideTitle && <h1>{slide.title}</h1>}
+              {slide.dark && <AmbientBackground />}
+              {!slide.hideTitle && <AnimatedTitle text={slide.title} />}
               <StepContext.Provider value={step}>
                 <Body step={step} />
               </StepContext.Provider>
@@ -102,10 +105,11 @@ export default function App() {
               </div>
               <div className="progress" aria-hidden>
                 {SLIDES.map((s, i) => (
-                  <span key={i} style={{ flex: 1, background: "#0F7C80", opacity: i <= index ? 1 : 0.18 }} />
+                  <motion.span key={i} initial={false} animate={{ opacity: i <= index ? 1 : 0.18, scaleY: i === index ? 1.8 : 1 }}
+                    transition={{ duration: 0.4 }} style={{ flex: 1, background: i === index ? "#E59A2B" : "#0F7C80", transformOrigin: "bottom" }} />
                 ))}
               </div>
-            </motion.section>
+            </SlideFrame>
           </AnimatePresence>
         </div>
       </div>
@@ -125,3 +129,10 @@ export default function App() {
     </>
   );
 }
+
+/** A slide section that runs the entrance choreography once it mounts. */
+const SlideFrame = React.forwardRef(function SlideFrame({ index, children, ...rest }, _ref) {
+  const ref = React.useRef(null);
+  useEntrance(ref, index);
+  return <motion.section ref={ref} {...rest}>{children}</motion.section>;
+});
